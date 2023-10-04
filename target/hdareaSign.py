@@ -3,6 +3,7 @@ from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.common.by import By
 import re
 import logging
+import time
 
 logger = logging.getLogger('sign')
 
@@ -19,6 +20,7 @@ class signClass:
         for element in elements:
             if element.text == '[签到]':
                 element.click()
+                time.sleep(3)
                 # driver.execute_script('alert("已连续签到46天，此次签到您获得了56魔力值奖励!")')
                 try:
                     alert = self.driver.switch_to.alert

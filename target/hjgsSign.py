@@ -2,11 +2,13 @@ from selenium.webdriver.common.by import By
 import re
 import logging
 import time
+from datetime import datetime
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger('sign')
 
 class signClass:
-    def __init__(self, driver, url = 'https://pt.upxin.net/index.php'):
+    def __init__(self, driver, url = 'https://www.yxhjgs.com/'):
         self.indexUrl = url
         self.driver = driver
     def accessIndex(self):
@@ -14,25 +16,13 @@ class signClass:
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
     def sign(self):
-        elements = self.driver.find_elements(By.ID, "qiandao")
-        for element in elements:
-            if element.text == '[签到]':
-                element.click()
-                time.sleep(3)
-                break
+        # 没有显式签到方法
+        pass
     def validSign(self):
-        if not re.search('HDU.*Torrents', self.driver.title):
+        if not re.search('游戏怀旧灌水', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
             return False
-        elements = self.driver.find_elements(By.ID, "yiqiandao")
-        for element in elements:
-            if element.text == '[已签到]':
-                logger.info('已经签到过了')
-                return True
-            if element.text == '[签到]':
-                return False
-        logger.info(f"未知异常。")
-        return False
+        return True
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

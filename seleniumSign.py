@@ -68,10 +68,8 @@ for sign in signList:
     logger.info(f"开始{sign.indexUrl}")
     if hasattr(sign, 'accessIndex') and callable(getattr(sign, 'accessIndex')):
         sign.accessIndex()
-        time.sleep(3)
     if hasattr(sign, 'sign') and callable(getattr(sign, 'sign')):
         sign.sign()
-        time.sleep(5)
     if hasattr(sign, 'validSign') and callable(getattr(sign, 'validSign')):
         if sign.validSign():
             succeedList.append(sign.indexUrl)
