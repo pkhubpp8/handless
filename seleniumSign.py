@@ -80,11 +80,17 @@ for sign in signList:
 
 
 logger.info("签到成功列表：")
-for url in succeedList:
-    logger.info(url)
+if not succeedList:
+    logger.info("空")
+else:
+    for url in succeedList:
+        logger.info(url)
 
 logger.info("签到失败列表：")
-for url in failedList:
-    logger.info(url)
+if not failedList:
+    logger.info("空")
+else:
+    for url in failedList:
+        logger.info(url)
 
 driver.quit()

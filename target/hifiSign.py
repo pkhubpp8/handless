@@ -14,26 +14,29 @@ class signClass:
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
     def sign(self):
-        # 去除delay部分
-        sign_script = '''
-    var postdata = sg_sign.serialize();
-    $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
-        $.alert(message);
-    });
-        '''
-        self.driver.execute_script(sign_script)
-        time.sleep(3)
-        '''
         elements = self.driver.find_elements(By.ID, "sign")
         for element in elements:
             if element.text == '签到':
-                element.click()
+                # 去除delay跳转部分
+                sign_script = '''
+var postdata = sg_sign.serialize();
+$.xpost(xn.url('sg_sign'), postdata, function(code, message) {
+    $.alert(message);
+});
+                '''
+                self.driver.execute_script(sign_script)
+                time.sleep(2)
                 return
-        '''
     def validSign(self):
         if not re.search('HiFiNi', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
             return False
+        elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
+        for element in elements:
+            match = re.search('成功签到！今日排名(\d+)，连续签到超过15天额外奖励1金币，总奖励(\d+)金币！', element.text)
+            if match:
+                logger.info(f"第{match.group(1)}名签到. 奖励金币:{match.group(2)}")
+                return True
         elements = self.driver.find_elements(By.ID, "sign")
         for element in elements:
             if element.text == '已签':
