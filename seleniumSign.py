@@ -17,7 +17,15 @@ from helper import listHelper
 # driver = uc.Chrome(options=options)
 # driver.get(url)
 
-logger = loginit.initialLog()
+# 使用os.path.exists()函数检查路径是否存在
+logPath = 'log/'
+if not os.path.exists(logPath):
+    # 如果路径不存在，使用os.makedirs()函数创建它
+    os.makedirs(logPath)
+geckodriver_log_path = logPath + 'geckodriver.log'
+sign_log_path = logPath + 'sign.log'
+
+logger = loginit.initialLog(sign_log_path)
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -27,9 +35,10 @@ from selenium.webdriver.common.by import By
 ffOptions = Options()
 
 ffOptions.add_argument("-profile")
-ffOptions.add_argument(profile.getProfilePath())
+ffOptions.add_argument(profile.getProfilePath(geckodriver_log_path))
+service = webdriver.firefox.service.Service(log_path=geckodriver_log_path)
 # ffOptions.add_argument(r"C:\Users\ZXW000\AppData\Roaming\Mozilla\Firefox\Profiles\xhvtyp4t.default-release-1583421326042")
-driver = webdriver.Firefox(options=ffOptions)
+driver = webdriver.Firefox(options=ffOptions, service=service)
 logger.info(driver.execute_script("return navigator.userAgent"))
 
 '''

@@ -18,14 +18,17 @@ def checkEnv():
     return None
 
 
-def getProfilePath():
+def getProfilePath(log_path):
     if not checkEnv():
         return None
         
     from selenium import webdriver
-    from selenium.webdriver.firefox.options import Options
     from selenium.webdriver.common.by import By
-    driver = webdriver.Firefox()
+    if log_path:
+        service = webdriver.firefox.service.Service(log_path=log_path)
+        driver = webdriver.Firefox(service=service)
+    else:
+        driver = webdriver.Firefox()
     driver.get("about:profiles")
     # 使用CSS选择器定位所有 "默认配置文件" 为 "是" 的元素以及对应的根目录元素
     config_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-is-default'] + td")
