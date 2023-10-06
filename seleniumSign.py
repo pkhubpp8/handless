@@ -4,7 +4,9 @@ import os
 import importlib
 import re
 import time
-import profile
+from init import profile
+from init import loginit
+from helper import listHelper
 
 # 可否使用这个过cf验证？
 # import undetected_chromedriver as uc
@@ -15,22 +17,12 @@ import profile
 # driver = uc.Chrome(options=options)
 # driver.get(url)
 
-# 配置日志记录器
-logger = logging.getLogger('sign')
-logger.setLevel(logging.INFO)  # 设置日志级别为 INFO 或更高级别
-file_handler = logging.FileHandler('sign.log')
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
-# 创建一个日志记录器
+logger = loginit.initialLog()
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 # from selenium.webdriver.support.wait import WebDriverWait
-
-
 
 ffOptions = Options()
 
@@ -80,17 +72,9 @@ for sign in signList:
 
 
 logger.info("签到成功列表：")
-if not succeedList:
-    logger.info("空")
-else:
-    for url in succeedList:
-        logger.info(url)
+listHelper.printList(succeedList)
 
 logger.info("签到失败列表：")
-if not failedList:
-    logger.info("空")
-else:
-    for url in failedList:
-        logger.info(url)
+listHelper.printList(failedList)
 
 driver.quit()
