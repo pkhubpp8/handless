@@ -3,19 +3,20 @@ import brotli
 import json
 import time
 import sys
+import os
 import logging
 from logging import handlers
 import zlib
 import datetime
-import profile
-import sql
+from init import profile
+from init import sql
 
 # 设置日志文件的基本文件名
 log_base_filename = "app"
 logger = logging.getLogger('my_app')
 logger.setLevel(logging.INFO)
 # 配置一个基于文件大小的日志轮换处理程序，设置文件大小和备份文件数量
-max_log_size = 500 * 1024  # 50KB
+max_log_size = 500 * 1024  # 500KB
 backup_count = 5
 handler = logging.handlers.RotatingFileHandler(f"{log_base_filename}.log", maxBytes=max_log_size, backupCount=backup_count)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -35,12 +36,14 @@ salaryOfDay_ = 0
 day_ = datetime.date.today().day
 Cookie = f"connect.sid={sid}"
 commonHeaders = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0",
+    "Host": "zhuque.in",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0",
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.7,en;q=0.5,zh-TW;q=0.3,zh-HK;q=0.2",
     "Accept-Encoding": "gzip, deflate, br",
     "Content-Type": "application/json",
-    "x-csrf-token": "91a2cc250a8ea30cd262fc0f4c4e8ae8",
+    "x-csrf-token": "71ca0352028c44d8abfb12100b86992c",
+    "Content-Length": "27",
     "Origin": "https://zhuque.in",
     "DNT": "1",
     "Connection": "keep-alive",
@@ -49,7 +52,6 @@ commonHeaders = {
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
-    "TE": "trailers"
 }
 
 def sleep_to_target_with_logging(target_time_stamp, interval=5*60, log_interval=30*60):
@@ -122,11 +124,12 @@ def getData(funcName, response):
 def getAllCharacters():
     url = "https://zhuque.in/api/gaming/listGenshinCharacter"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0",
+        "Host": "zhuque.in",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0",
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.7,en;q=0.5,zh-TW;q=0.3,zh-HK;q=0.2",
         "Accept-Encoding": "gzip, deflate, br",
-        "x-csrf-token": "91a2cc250a8ea30cd262fc0f4c4e8ae8",
+        "x-csrf-token": "71ca0352028c44d8abfb12100b86992c",
         "DNT": "1",
         "Connection": "keep-alive",
         "Referer": "https://zhuque.in/gaming/genshin/character/list",
@@ -134,8 +137,8 @@ def getAllCharacters():
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
-        "If-None-Match": 'W/"a740-EyWLvBDK3PKT8dGJEGq+zQCGPUk"',
-        "TE": "trailers"
+        "If-None-Match": 'W/"a839-kKpez7g7e1izjqHw122Ja/HZSoM"',
+        "TE": "trailers",
     }
     response = requests.get(url, headers=headers)
 

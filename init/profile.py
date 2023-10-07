@@ -18,7 +18,7 @@ def checkEnv():
     return None
 
 
-def getProfilePath(log_path):
+def getProfilePath(log_path=""):
     if not checkEnv():
         return None
         
