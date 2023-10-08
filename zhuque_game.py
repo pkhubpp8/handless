@@ -130,7 +130,6 @@ def getAllCharacters():
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
-        "If-None-Match": 'W/"a839-kKpez7g7e1izjqHw122Ja/HZSoM"',
         "TE": "trailers",
     }
     response = requests.get(url, headers=headers)

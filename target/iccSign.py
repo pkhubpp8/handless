@@ -36,6 +36,9 @@ class signClass:
                 return True
         elements = self.driver.find_elements(By.CLASS_NAME, 'my_tag')
         for element in elements:
+            if element.text == '点击签到':
+                logger.info(f"未签到。")
+                return False
             match = re.search('签到已得(\d+), 补签卡: \d+', element.text)
             if match:
                 logger.info(f"已经签到过了。签到已得{match.group(1)}")

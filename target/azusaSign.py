@@ -22,6 +22,9 @@ class signClass:
         if not re.search('梓喵.*NexusPHP', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
             return False
+        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
+        for element in elements:
+            logger.info(element.text)
         elements = self.driver.find_elements(By.CLASS_NAME, "text")
         for element in elements:
             match = re.search('这是[你您]的第\s+(\d+)\s+次签到.*已连续签到\s+(\d+)\s+天.*本次签到获得\s+(\d+)\s+个魔力值', element.text)
