@@ -1,12 +1,12 @@
 import logging
-import sys
 import os
-import importlib
 import re
-import time
+import json
 from init import profile
 from init import myLogger
 from helper import listHelper
+from helper import moduleImport
+
 
 # 可否使用这个过cf验证？
 # import undetected_chromedriver as uc
@@ -35,9 +35,11 @@ from selenium.webdriver.common.by import By
 ffOptions = Options()
 
 ffOptions.add_argument("-profile")
-ffOptions.add_argument(profile.getProfilePath(geckodriver_log_path))
+# ffOptions.add_argument(profile.getProfilePath(geckodriver_log_path))
+appdata_path = os.path.expandvars('%AppData%')
+file_path = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles\xhvtyp4t.default-release-1583421326042')
+ffOptions.add_argument(file_path)
 service = webdriver.firefox.service.Service(log_path=geckodriver_log_path)
-# ffOptions.add_argument(r"C:\Users\ZXW000\AppData\Roaming\Mozilla\Firefox\Profiles\xhvtyp4t.default-release-1583421326042")
 driver = webdriver.Firefox(options=ffOptions, service=service)
 logger.info(driver.execute_script("return navigator.userAgent"))
 
@@ -48,15 +50,18 @@ WebDriverWait(driver, 10).until(
     )
 '''
 
-# 获取目录下所有.py文件的文件名
-target_directory = 'target'
-py_files = [f[:-3] for f in os.listdir(target_directory) if f.endswith('.py')]
 
+# 获取目录下.py文件的文件名
+sites = []
+target_directory = 'target'
+data = moduleImport.load_target_json(target_directory, 'sign_site.json')
 signList = []
-# 动态导入所有.py文件
-for module_name in py_files:
-    module = importlib.import_module(f'{target_directory}.{module_name}')
-    signList.append(module.signClass(driver))
+if 'all' in data and data['all'] != True and "signSite" in data:
+    sites = data['signSite']
+    signList = moduleImport.import_modules(all = False, dir = target_directory, sites = sites, driver = driver)
+else:
+    logger.info("import所有模块")
+    signList = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
 
 
 # 支持访问每个request请求的selenium
