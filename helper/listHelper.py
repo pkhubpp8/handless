@@ -1,4 +1,4 @@
-def printList(tmpList):
+def printList(tmpList, logger):
     if not tmpList:
         logger.info("空")
     else:

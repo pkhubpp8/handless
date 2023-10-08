@@ -4,31 +4,24 @@ import json
 import time
 import sys
 import os
-import logging
-from logging import handlers
 import zlib
 import datetime
 from init import profile
 from init import sql
+from init import myLogger
 
-# 设置日志文件的基本文件名
-log_base_filename = "app"
-logger = logging.getLogger('my_app')
-logger.setLevel(logging.INFO)
-# 配置一个基于文件大小的日志轮换处理程序，设置文件大小和备份文件数量
-max_log_size = 500 * 1024  # 500KB
-backup_count = 5
-handler = logging.handlers.RotatingFileHandler(f"{log_base_filename}.log", maxBytes=max_log_size, backupCount=backup_count)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-
-# 将处理程序添加到日志记录器
-logger.addHandler(handler)
+logPath = 'log/'
+if not os.path.exists(logPath):
+    # 如果路径不存在，使用os.makedirs()函数创建它
+    os.makedirs(logPath)
+game_log_path = logPath + 'game.log'
+geckodriver_log_path = logPath + 'geckodriver.log'
+logger = myLogger.myLogger('game', game_log_path).getLogger()
 
 appdata_path = os.path.expandvars('%AppData%')
 file_path = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles\xhvtyp4t.default-release-1583421326042')
 # localSql = sql.Sql(file_path)
-localSql = sql.Sql(profile.getProfilePath())
+localSql = sql.Sql(profile.getProfilePath(geckodriver_log_path))
 sid = localSql.getCookieByUrlAndName('zhuque.in', 'connect.sid')
 
 costOfDay_ = 0

@@ -5,7 +5,7 @@ import importlib
 import re
 import time
 from init import profile
-from init import loginit
+from init import myLogger
 from helper import listHelper
 
 # 可否使用这个过cf验证？
@@ -25,7 +25,7 @@ if not os.path.exists(logPath):
 geckodriver_log_path = logPath + 'geckodriver.log'
 sign_log_path = logPath + 'sign.log'
 
-logger = loginit.initialLog(sign_log_path)
+logger = myLogger.myLogger('sign', sign_log_path).getLogger()
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -81,9 +81,9 @@ for sign in signList:
 
 
 logger.info("签到成功列表：")
-listHelper.printList(succeedList)
+listHelper.printList(succeedList, logger)
 
 logger.info("签到失败列表：")
-listHelper.printList(failedList)
+listHelper.printList(failedList, logger)
 
 driver.quit()
