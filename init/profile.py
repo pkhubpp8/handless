@@ -18,10 +18,10 @@ def checkEnv():
     return None
 
 
-def getProfilePath(log_path=""):
+def startTempDriver(log_path = ""):
     if not checkEnv():
         return None
-        
+
     from selenium import webdriver
     from selenium.webdriver.common.by import By
     if log_path:
@@ -29,6 +29,29 @@ def getProfilePath(log_path=""):
         driver = webdriver.Firefox(service=service)
     else:
         driver = webdriver.Firefox()
+    return driver
+
+def stopTempDriver(driver = None):
+    if driver:
+        driver.quit()
+
+
+def getDefaultProfilePath():
+    appdata_path = os.path.expandvars('%AppData%')
+    file_path = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles') # \xhvtyp4t.default-release-1583421326042')
+    if os.path.exists(file_path):
+        print(f'路径 {file_path} 存在')
+        subdirectories = [d for d in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, d))]
+        if len(subdirectories) == 1:
+            profile_dir = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles', subdirectories[0])
+            return profile_dir
+    return None
+
+
+def getProfilePath(driver = None):
+    if not driver:
+        return None
+
     driver.get("about:profiles")
     # 使用CSS选择器定位所有 "默认配置文件" 为 "是" 的元素以及对应的根目录元素
     config_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-is-default'] + td")
@@ -44,8 +67,14 @@ def getProfilePath(log_path=""):
             root_dir_element = root_dir_elements[i]
             break  # 找到匹配的元素后退出循环
 
+    if root_dir_element:
+        profile_path = re.sub(re.escape(open_folder_button.text), '', root_dir_element.text)
+        return profile_path
+    else:
+        return None
 
-    profile_path = re.sub(re.escape(open_folder_button.text), '', root_dir_element.text)
 
-    driver.quit()
-    return profile_path
+def getUA(driver = None):
+    if not driver:
+        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0"
+    return driver.execute_script("return navigator.userAgent")

@@ -1,7 +1,5 @@
-import logging
 import os
-import re
-import json
+import sys
 from init import profile
 from init import myLogger
 from helper import listHelper
@@ -12,7 +10,7 @@ from helper import moduleImport
 # import undetected_chromedriver as uc
 # from selenium import webdriver
 
-# options = webdriver.ChromeOptions() 
+# options = webdriver.ChromeOptions()
 # options.add_argument("start-maximized")
 # driver = uc.Chrome(options=options)
 # driver.get(url)
@@ -35,10 +33,20 @@ from selenium.webdriver.common.by import By
 ffOptions = Options()
 
 ffOptions.add_argument("-profile")
-# ffOptions.add_argument(profile.getProfilePath(geckodriver_log_path))
-appdata_path = os.path.expandvars('%AppData%')
-file_path = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles\xhvtyp4t.default-release-1583421326042')
-ffOptions.add_argument(file_path)
+profile_dir = profile.getDefaultProfilePath()
+if profile_dir:
+    ffOptions.add_argument(profile_dir)
+else:
+    tempDriver = profile.startTempDriver(geckodriver_log_path)
+    profile_dir = profile.getProfilePath(tempDriver)
+    profile.stopTempDriver(tempDriver)
+    if profile_dir:
+        ffOptions.add_argument(profile_dir)
+    else:
+        logger.error(f"无法获取profile")
+        sys.exit(-1)
+
+
 service = webdriver.firefox.service.Service(log_path=geckodriver_log_path)
 driver = webdriver.Firefox(options=ffOptions, service=service)
 logger.info(driver.execute_script("return navigator.userAgent"))
