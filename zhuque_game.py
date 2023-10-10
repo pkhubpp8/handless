@@ -7,7 +7,7 @@ import os
 import zlib
 import datetime
 from bs4 import BeautifulSoup
-from init import profile
+from init import firefox_profile
 from init import sql
 from init import myLogger
 
@@ -53,18 +53,18 @@ def initGame(game: GAME):
         return
     currentUA = None
     tempDriver = None
-    profile_dir = profile.getDefaultProfilePath()
+    profile_dir = firefox_profile.getDefaultProfilePath()
     if profile_dir:
         localSql = sql.Sql(profile_dir)
     else:
-        tempDriver = profile.startTempDriver(geckodriver_log_path)
-        profile_dir = profile.getProfilePath(tempDriver)
-        currentUA = profile.getUA(tempDriver)
-        profile.stopTempDriver(tempDriver)
+        tempDriver = firefox_profile.startTempDriver(geckodriver_log_path)
+        profile_dir = firefox_profile.getProfilePath(tempDriver)
+        currentUA = firefox_profile.getUA(tempDriver)
+        firefox_profile.stopTempDriver(tempDriver)
         localSql = sql.Sql(profile_dir)
 
     if not currentUA:
-        currentUA = profile.getUA(tempDriver)
+        currentUA = firefox_profile.getUA(tempDriver)
     sid = localSql.getCookieByUrlAndName('zhuque.in', 'connect.sid')
 
     game.setCookie(f"connect.sid={sid}")

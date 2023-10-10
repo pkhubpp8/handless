@@ -1,6 +1,6 @@
 import os
 import sys
-from init import profile
+from init import firefox_profile
 from init import myLogger
 from helper import listHelper
 from helper import moduleImport
@@ -34,13 +34,13 @@ from selenium.webdriver.common.by import By
 ffOptions = Options()
 
 ffOptions.add_argument("-profile")
-profile_dir = profile.getDefaultProfilePath()
+profile_dir = firefox_profile.getDefaultProfilePath()
 if profile_dir:
     ffOptions.add_argument(profile_dir)
 else:
-    tempDriver = profile.startTempDriver(geckodriver_log_path)
-    profile_dir = profile.getProfilePath(tempDriver)
-    profile.stopTempDriver(tempDriver)
+    tempDriver = firefox_profile.startTempDriver(geckodriver_log_path)
+    profile_dir = firefox_profile.getProfilePath(tempDriver)
+    firefox_profile.stopTempDriver(tempDriver)
     if profile_dir:
         ffOptions.add_argument(profile_dir)
     else:
