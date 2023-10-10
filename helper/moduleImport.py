@@ -18,7 +18,7 @@ def load_target_json(dir, json_file):
     else:
         logger.info("JSON数据加载成功。")
         return data
-    
+
 
 def import_modules(all = True, dir = "", sites = [], driver = None):
     signList = []

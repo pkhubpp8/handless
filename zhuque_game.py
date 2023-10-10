@@ -112,7 +112,7 @@ def sleep_with_logging(total_sleep_time, interval=30*60):
 
 
 def getData(funcName, response):
-    if response.status_code == 200:
+    if response.status_code == 200 or (response.status_code == 400 and funcName == "doLvlUp"):
         try:
             content = response.content
             encoding = response.headers.get("content-encoding", "")
@@ -135,7 +135,7 @@ def getData(funcName, response):
             data = json.loads(content.decode("utf-8"))
             return data
         except json.JSONDecodeError as e:
-            logger.error("%s 无法解析JSON: %s", funcName, e)
+            logger.error(f"{funcName} 无法解析JSON, code {response.status_code}: {e}")
     elif response.status_code == 401:
         logger.error(f"{funcName} 鉴权无效 {response.status_code}。进程退出。请重新登录并更新cookie")
         sys.exit(-1)
@@ -268,8 +268,14 @@ def checkIfAllCharactersNeedLvlUpAndDoLvlUp(characterList, game: GAME):
     isLvlUp = False
     for i in characterList:
         if checkIfCharacterNeedLvlUp(i):
+            data = doLvlUp(i, game.getUA(), game.getCookie(), game.getCSRF())
+            if "status" in data and 'code' in data and data['status'] == 400 and data['code'] == 'INSUFFICIENT_BONUS':
+                logger.info("灵石不足，结束升级")
+                return isLvlUp
+            elif data is None:
+                logger.info("未知异常，结束升级")
+                return False
             isLvlUp = True
-            doLvlUp(i, game.getUA(), game.getCookie(), game.getCSRF())
             time.sleep(5)  # 等待5秒钟
     if isLvlUp == False:
         logger.info("无需升级")
@@ -283,7 +289,7 @@ def checkIfCharacterNeedLvlUp(character):
         magic == 3, 绑定的角色在释放技能时有几率免除冷却时间
         magic == 4, 绑定的角色在释放技能时有几率获得双倍灵石
     '''
-    if character['magic'] == 1 and character['info']['ratio'] == 0.5 and character['info']['level'] < 70:
+    if character['magic'] == 1 and character['info']['ratio'] == 0.5 and character['info']['level'] < 75:
         return True
     return False
 

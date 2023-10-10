@@ -23,7 +23,6 @@ def startTempDriver(log_path = ""):
         return None
 
     from selenium import webdriver
-    from selenium.webdriver.common.by import By
     if log_path:
         service = webdriver.firefox.service.Service(log_path=log_path)
         driver = webdriver.Firefox(service=service)
@@ -54,6 +53,8 @@ def getProfilePath(driver = None):
 
     driver.get("about:profiles")
     # 使用CSS选择器定位所有 "默认配置文件" 为 "是" 的元素以及对应的根目录元素
+
+    from selenium.webdriver.common.by import By
     config_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-is-default'] + td")
     root_dir_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-rootdir'] + td")
     open_folder_button = driver.find_element(By.CSS_SELECTOR, "button[data-l10n-id='profiles-opendir']")

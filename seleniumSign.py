@@ -20,6 +20,7 @@ logPath = 'log/'
 if not os.path.exists(logPath):
     # 如果路径不存在，使用os.makedirs()函数创建它
     os.makedirs(logPath)
+
 geckodriver_log_path = logPath + 'geckodriver.log'
 sign_log_path = logPath + 'sign.log'
 
@@ -60,13 +61,11 @@ WebDriverWait(driver, 10).until(
 
 
 # 获取目录下.py文件的文件名
-sites = []
 target_directory = 'target'
 data = moduleImport.load_target_json(target_directory, 'sign_site.json')
 signList = []
 if 'all' in data and data['all'] != True and "signSite" in data:
-    sites = data['signSite']
-    signList = moduleImport.import_modules(all = False, dir = target_directory, sites = sites, driver = driver)
+    signList = moduleImport.import_modules(all = False, dir = target_directory, sites = data['signSite'], driver = driver)
 else:
     logger.info("import所有模块")
     signList = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)

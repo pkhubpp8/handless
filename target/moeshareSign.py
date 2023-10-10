@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 logger = logging.getLogger('sign')
 
 class signClass:
-    def __init__(self, driver, url = 'https://moeshare.cc/index.php'):
+    def __init__(self, driver, url = 'https://moeshare.cc/'):
         self.indexUrl = url
         self.driver = driver
     def accessIndex(self):
@@ -16,9 +16,13 @@ class signClass:
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
         time.sleep(1)
+        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "每日打卡")
+        for element in elements:
+            if element.get_attribute("href") == (self.indexUrl + 'u.php'):
+                element.click()
+                time.sleep(1)
+                break
     def sign(self):
-        self.driver.get('https://moeshare.cc/u.php')
-        time.sleep(1)
         elements = self.driver.find_elements(By.CLASS_NAME, "mb5")
         self.liveness = 0
         for element in elements:
@@ -30,7 +34,7 @@ class signClass:
             return
         elements = self.driver.find_elements(By.CLASS_NAME, "card")
         for element in elements:
-            if element.text == '每日打卡' and self.liveness >= 10:
+            if element.text == '每日打卡' and element.get_attribute("disabled") != 'true' and self.liveness >= 10:
                 element.click()
                 time.sleep(1)
                 self.driver.refresh()
@@ -40,32 +44,25 @@ class signClass:
         if not re.search('Powered by phpwind', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
             return False
-        elements = self.driver.find_elements(By.CLASS_NAME, "mb5")
-        remainLiveness = 0
+        elements = self.driver.find_elements(By.ID, "message_remind")
         for element in elements:
-            match = re.search('活跃度：(\d+)', element.text)
+            match = re.search('(.*新消息)\n.*', element.text)
             if match:
-                remainLiveness = int(match.group(1))
-                break
-        if not hasattr(self, 'liveness'):
-            logger.info(f"请先执行sign方法")
-            return False
-        if remainLiveness < self.liveness:
-            myMB = 0
-            for element in elements:
-                match = re.search('MB：(\d+)', element.text)
-                if match:
-                    myMB = int(match.group(1))
-                    break
-            logger.info(f"签到成功。剩余活跃度：{remainLiveness}，当前MB：{myMB}")
-            return True
-        if remainLiveness == self.liveness and remainLiveness >= 10:
-            logger.info(f"已经签到过了。")
-            return True
-        if remainLiveness == self.liveness and remainLiveness < 10:
-            logger.info(f"未知是否签到")
-            # todo 如何判断是否已签到？
-            return False
+                logger.info(match.group(1))
+        elements = self.driver.find_elements(By.CLASS_NAME, "card")
+        for element in elements:
+            if element.text == '每日打卡' and element.get_attribute("disabled") == 'true':
+                logger.info(f"已经签到过了。")
+                return True
+            elif element.text == '每日打卡' and element.get_attribute("disabled") != 'true':
+                logger.info(f"还未签到。")
+                return False
+            # 这是未打卡。无论活跃度多少
+            # <button id="punch" type="button" onclick="punchJob();" class="card">每日打卡</button>
+            # 这是已打卡。无论活跃度多少
+            # <button id="punch" type="button" onclick="punchJob();" class="card card_old" disabled="">每日打卡</button>
+            # 这是打完卡，重新进来
+            # <button type="button" class="card card_old" disabled="">每日打卡</button>
         logger.info(f"未知异常。")
         return False
     def exit(self):
