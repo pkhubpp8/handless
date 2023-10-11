@@ -331,7 +331,7 @@ if __name__ == "__main__":
             if data['status'] != 200:
                 logger.error("getAll 2 状态码异常，退出")
                 raise ValueError("getAll 2 状态码异常")
-            logger.info(f"此次升级消费{myRemainBonus - data['data']['bonus']}灵石")
+            logger.info(f"此次升级消费{int(myRemainBonus - data['data']['bonus'])}灵石")
             myRemainBonus = data['data']['bonus']
             myCharacterList = data['data']['characters']
     except Exception as e:

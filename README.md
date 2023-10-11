@@ -1,36 +1,33 @@
-# 使用原因
-1. 网站签到，比如pt站
-2. 网站保活，比如长期不登陆就删封号的
-3. 朱雀抽卡时间
-4. 解放双手
-
-
 # 如何使用
 
 ## 通用
 1. 安装python 3
-2. 安装必须的依赖库
+2. 安装必须的依赖库（跑就对了，提示缺什么就pip装什么）
+3. 当前只支持firefox浏览器
+4. 暂时无法过cf真人验证
 
 ## 签到、保活
++ 原理：使用selenium操作浏览器进行模拟点击
 1. 下载geckodriver.exe：<https://github.com/mozilla/geckodriver/releases>
 2. 将geckodriver.exe路径存入环境变量或项目目录
-3. （可选）修改target/sign_site.json
-4. 关闭浏览器
-5. `python seleniumSign.py`
-
-
-
+3. （可选）修改target/sign_site.json。默认all
+4. firefox不允许使用相同配置打开不同浏览器进程，因此需要关闭当前浏览器
+5. 每天执行一次`python seleniumSign.py`
 
 ## 朱雀抽卡时间
-+ 浏览器登录朱雀，无需关闭浏览器
-+ 直接运行`zhuque_game.py`或`python zhuque_game.py`。
-+ 如果http报400错误，重新抓包，修改getAllCharacters的headers。大概率是"If-None-Match"引起的。
-+ 可以一直运行在后台，例如NAS上
-+ 如果浏览器有多份配置文件，cookie仅会从第一份配置文件中获取。如果加载cookie失败。可以用以下方法
-### 方法1
-1. 直接修改`zhuque_game.py`中的`profile.getProfilePath()`，替换为默认配置路径，注意转义符
-2. 配置文件获取方式：打开火狐浏览器，地址栏输入`about:profiles`。取"根目录"地址
++ 原理：使用requests库发送http请求，与签到的原理不同
+1. 浏览器登录朱雀（依赖浏览器的cookie数据库），无需关闭浏览器
+2. 直接运行`zhuque_game.py`或命令行`python zhuque_game.py`。
+3. 可以一直运行在后台
 
-### 方法2
-+ 安装geckodriver.exe，`profile.py`会自动检测firefox的默认配置路径，过程相对较慢
 
+## TODO
++ 实现undetected_chromedriver. 但是由于cf升级，uc + chrome v117也无法过cf验证，暂停
++ 整合seleniumSign和zhuque_game
++ 日志整改
++ 通过本地记录防止seleniumSign重复签到
++ 可以签到的同时获取一些数据信息
++ 增加requirements.txt
++ 结果推送，考虑使用IYUUU或html页面展示
++ 增加配置文件，yaml或ini
++ 增加test代码

@@ -15,6 +15,7 @@ class signClass:
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
+        time.sleep(3)
     def sign(self):
         # 没有显式签到方法
         pass

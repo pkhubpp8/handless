@@ -2,8 +2,6 @@ from selenium.webdriver.common.by import By
 import re
 import logging
 import time
-from datetime import datetime
-from bs4 import BeautifulSoup
 
 logger = logging.getLogger('sign')
 

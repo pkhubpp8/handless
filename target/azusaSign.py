@@ -5,13 +5,19 @@ import logging
 logger = logging.getLogger('sign')
 
 class signClass:
-    def __init__(self, driver, url = 'https://azusa.wiki/index.php'):
+    def __init__(self, driver, url: str = 'https://azusa.wiki/index.php'):
         self.indexUrl = url
         self.driver = driver
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
+    def msgCheck(self) -> bool:
+        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
+        for element in elements:
+            logger.info(element.text)
+            return True
+        return False
     def sign(self):
         elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
         for element in elements:
