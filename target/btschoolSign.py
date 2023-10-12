@@ -12,6 +12,17 @@ class signClass:
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
+    def msgCheck(self) -> bool:
+        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
+        if len(elements) == 1:
+            logger.info(elements[0].text)
+            return True
+        elif len(elements) == 0:
+            return False
+        else:
+            logger.info(elements[0].text)
+            logger.warning(f"找到elements长度{len(elements)}异常")
+            return False
     def sign(self):
         elements = self.driver.find_elements(By.LINK_TEXT, "每日签到")
         for element in elements:
@@ -22,9 +33,6 @@ class signClass:
         if not re.search('BTSCHOOL.*NexusPHP', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
             return False
-        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
-        for element in elements:
-            logger.info(element.text)
         elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "今天签到")
         for element in elements:
             match = re.search('今天签到您获得(\d+)点魔力值', element.text)

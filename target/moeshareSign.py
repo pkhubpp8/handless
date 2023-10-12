@@ -20,6 +20,21 @@ class signClass:
                 element.click()
                 time.sleep(1)
                 break
+    def msgCheck(self) -> bool:
+        elements = self.driver.find_elements(By.ID, "message_remind")
+        if len(elements) == 1:
+            match = re.search('(.*新消息)\n.*', elements[0].text)
+            if match:
+                logger.info(match.group(1))
+            else:
+                logger.warning("message_remind")
+            return True
+        elif len(elements) == 0:
+            return False
+        else:
+            logger.info(elements[0].text)
+            logger.warning(f"找到elements长度{len(elements)}异常")
+            return False
     def sign(self):
         elements = self.driver.find_elements(By.CLASS_NAME, "mb5")
         self.liveness = 0
@@ -42,18 +57,16 @@ class signClass:
         if not re.search('Powered by phpwind', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
             return False
-        elements = self.driver.find_elements(By.ID, "message_remind")
-        for element in elements:
-            match = re.search('(.*新消息)\n.*', element.text)
-            if match:
-                logger.info(match.group(1))
         elements = self.driver.find_elements(By.CLASS_NAME, "card")
         for element in elements:
             if element.text == '每日打卡' and element.get_attribute("disabled") == 'true':
                 logger.info(f"已经签到过了。")
                 return True
             elif element.text == '每日打卡' and element.get_attribute("disabled") != 'true':
-                logger.info(f"还未签到。")
+                if hasattr(self, 'liveness') and self.liveness < 10:
+                    logger.info(f"未签到。活跃度不够: {self.liveness}")
+                else:
+                    logger.info(f"未签到。先调用sign")
                 return False
             # 这是未打卡。无论活跃度多少
             # <button id="punch" type="button" onclick="punchJob();" class="card">每日打卡</button>
