@@ -18,6 +18,7 @@ class signClass:
         time.sleep(3)
     def sign(self):
         # 没有显式签到方法
+        # 仅访问主页似乎没有增加魔力
         pass
     def validSign(self):
         if not re.search('游戏怀旧灌水', self.driver.title):
