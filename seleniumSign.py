@@ -83,6 +83,8 @@ for sign in signList:
         sign.accessIndex()
     if hasattr(sign, 'sign') and callable(getattr(sign, 'sign')):
         sign.sign()
+    if hasattr(sign, 'msgCheck') and callable(getattr(sign, 'msgCheck')):
+        sign.msgCheck()
     if hasattr(sign, 'validSign') and callable(getattr(sign, 'validSign')):
         if sign.validSign():
             succeedList.append(sign.indexUrl)
