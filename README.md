@@ -27,7 +27,7 @@
 + 日志整改
 + 通过本地记录防止seleniumSign重复签到
 + 可以签到的同时获取一些数据信息
-+ 增加requirements.txt
++ ~~增加requirements.txt~~
 + 结果推送，考虑使用IYUUU或html页面展示
 + 增加配置文件，yaml或ini
 + 增加test代码
