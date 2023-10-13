@@ -29,7 +29,8 @@ class signClass:
                     return
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
         for element in elements:
-            if element.text == '每日打卡':
+            match = re.search('每日打卡|\d+天未打卡', element.text)
+            if match:
                 element.click()
                 time.sleep(1)
                 self.driver.refresh()
@@ -43,14 +44,15 @@ class signClass:
         # 第一天打卡(刷新)   <div class="card fr card_old"><span>连续1天打卡</span></div>
         #                   <div class="card fr card_old"><span>连续2天打卡</span></div>
         # 第二天打卡(未刷新) <div class="card card_old fr" id="punch" onclick="if (!window.__cfRLUnblockHandlers) return false; punchJob(86);" style=""><span>连续2天打卡</span></div>
-        # 断签？
+        # 断签？                2天未打卡
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.card_old.fr")
         for element in elements:
             match = re.search('连续(\d+)天打卡', element.text)
             if match:
                 logger.info(f"已经签到过了。连续{match.group(1)}天打卡")
                 return True
-
+            if re.search('每日打卡|\d+天未打卡', element.text):
+                return False
         logger.info(f"未知异常。")
         return False
     def exit(self):
