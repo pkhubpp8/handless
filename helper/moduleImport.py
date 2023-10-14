@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import importlib
+import queue
 
 
 logger = logging.getLogger('sign')
@@ -21,15 +22,14 @@ def load_target_json(dir, json_file):
 
 
 def import_modules(all = True, dir = "", sites = [], driver = None):
-    signList = []
-
+    sign_queue = queue.Queue()
     if all == True:
         # 获取目录下所有.py文件的文件名
         py_files = [f[:-3] for f in os.listdir(dir) if f.endswith('.py')]
         # 动态导入.py文件
         for module_name in py_files:
             module = importlib.import_module(f'{dir}.{module_name}')
-            signList.append(module.signClass(driver))
+            sign_queue.put(module.signClass(driver))
             logger.info(f'导入{dir}.{module_name}成功')
     else:
         unique_sign_sites = []
@@ -45,8 +45,8 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
         for site in unique_sign_sites:
             module = importlib.import_module(f'{dir}.{site["fileName"][:-3]}')
             if site["url"]:
-                signList.append(module.signClass(driver, site["url"]))
+                sign_queue.put(module.signClass(driver, site["url"]))
             else:
-                signList.append(module.signClass(driver))
+                sign_queue.put(module.signClass(driver))
             logger.info(f'导入{site["fileName"][:-3]}成功')
-    return signList
+    return sign_queue

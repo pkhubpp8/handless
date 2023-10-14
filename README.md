@@ -2,7 +2,7 @@
 
 ## 通用
 1. 安装python 3
-2. 安装必须的依赖库（跑就对了，提示缺什么就pip装什么）
+2. `pip install -r requirements.txt`安装依赖库
 3. 当前只支持firefox浏览器
 4. 暂时无法过cf真人验证
 

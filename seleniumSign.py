@@ -63,12 +63,11 @@ WebDriverWait(driver, 10).until(
 # 获取目录下.py文件的文件名
 target_directory = 'target'
 data = moduleImport.load_target_json(target_directory, 'sign_site.json')
-signList = []
 if 'all' in data and data['all'] != True and "signSite" in data:
-    signList = moduleImport.import_modules(all = False, dir = target_directory, sites = data['signSite'], driver = driver)
+    sign_queue = moduleImport.import_modules(all = False, dir = target_directory, sites = data['signSite'], driver = driver)
 else:
     logger.info("import所有模块")
-    signList = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
+    sign_queue = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
 
 
 # 支持访问每个request请求的selenium
@@ -77,7 +76,8 @@ else:
 
 succeedList = []
 failedList = []
-for sign in signList:
+while not sign_queue.empty():
+    sign = sign_queue.get()
     logger.info(f"开始{sign.indexUrl}")
     if hasattr(sign, 'accessIndex') and callable(getattr(sign, 'accessIndex')):
         sign.accessIndex()
@@ -88,11 +88,13 @@ for sign in signList:
     if hasattr(sign, 'validSign') and callable(getattr(sign, 'validSign')):
         if sign.validSign():
             succeedList.append(sign.indexUrl)
-            sign.exit()
-            continue
-    failedList.append(sign.indexUrl)
+        else:
+            failedList.append(sign.indexUrl)
+    else:
+        failedList.append(sign.indexUrl)
     sign.exit()
-
+    if hasattr(sign, 'logResult') and callable(getattr(sign, 'logResult')):
+        sign.logResult()
 
 logger.info("签到成功列表：")
 listHelper.printList(succeedList, logger)

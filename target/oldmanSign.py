@@ -34,6 +34,7 @@ class signClass:
                 logger.info('已经签到过了。')
                 return True
             if element.text == '签到':
+                logger.info('还未签到。')
                 return False
         logger.info(f"未知异常。")
         return False

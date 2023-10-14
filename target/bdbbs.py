@@ -9,6 +9,8 @@ class signClass:
     def __init__(self, driver, url = 'https://www.manhuabudangbbs.com/'):
         self.indexUrl = url
         self.driver = driver
+        self.signResult = False
+        self.failureReason = ""
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
@@ -39,6 +41,7 @@ class signClass:
     def validSign(self):
         if not re.search('Powered by phpwind', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}")
+            self.failureReason = f"标题异常：{self.driver.title}"
             return False
         # 未打卡            <div class="card fr" id="punch" onclick="if (!window.__cfRLUnblockHandlers) return false; punchJob(86);"><span>每日打卡</span></div>
         # 第一天打卡(刷新)   <div class="card fr card_old"><span>连续1天打卡</span></div>
@@ -50,11 +53,16 @@ class signClass:
             match = re.search('连续(\d+)天打卡', element.text)
             if match:
                 logger.info(f"已经签到过了。连续{match.group(1)}天打卡")
+                self.signResult = True
                 return True
             if re.search('每日打卡|\d+天未打卡', element.text):
+                self.failureReason = f"未曾打卡"
                 return False
         logger.info(f"未知异常。")
+        self.failureReason = f"未知异常"
         return False
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
+    def logResult(self):
+        pass
