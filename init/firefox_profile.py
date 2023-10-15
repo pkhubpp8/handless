@@ -1,6 +1,7 @@
 import logging
 import re
 import os
+import sys
 
 def checkEnv():
     exe = "geckodriver.exe"
@@ -18,13 +19,13 @@ def checkEnv():
     return None
 
 
-def startTempDriver(log_path = ""):
+def startTempDriver(log_path: str):
     if not checkEnv():
         return None
 
     from selenium import webdriver
     if log_path:
-        service = webdriver.firefox.service.Service(log_path=log_path)
+        service = webdriver.firefox.service.Service(log_path = log_path)
         driver = webdriver.Firefox(service=service)
     else:
         driver = webdriver.Firefox()
@@ -79,3 +80,27 @@ def getUA(driver = None):
     if not driver:
         return "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0"
     return driver.execute_script("return navigator.userAgent")
+
+
+def create_firefox_with_user_profile(webdriver_log_path: str):
+    from selenium.webdriver.firefox.options import Options
+    ffOptions = Options()
+
+    ffOptions.add_argument("-profile")
+    profile_dir = getDefaultProfilePath()
+    if profile_dir:
+        ffOptions.add_argument(profile_dir)
+    else:
+        tempDriver = startTempDriver(webdriver_log_path)
+        profile_dir = getProfilePath(tempDriver)
+        stopTempDriver(tempDriver)
+        if profile_dir:
+            ffOptions.add_argument(profile_dir)
+        else:
+            logging.error(f"无法获取profile")
+            sys.exit(-1)
+    from selenium import webdriver
+    service = webdriver.firefox.service.Service(log_path = webdriver_log_path)
+    driver = webdriver.Firefox(options = ffOptions, service = service)
+    logging.info(driver.execute_script("return navigator.userAgent"))
+    return driver

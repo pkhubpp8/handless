@@ -5,9 +5,10 @@ import logging
 logger = logging.getLogger('sign')
 
 class signClass:
-    def __init__(self, driver, url = 'https://bbs.oldmantvg.net/'):
+    def __init__(self, driver, url = 'https://bbs.oldmantvg.net/', module_name: str = 'oldmanSign'):
         self.indexUrl = url
         self.driver = driver
+        self.module_name = module_name
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
@@ -24,9 +25,9 @@ class signClass:
             return False
         elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
         for element in elements:
-            match = re.search('签到成功！您是第(\d+)名签到！\n\[连签奖励\]\n经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
+            match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
             if match:
-                logger.info(f"第{match.group(1)}名签到. 经验:{match.group(2)}、蘑菇:{match.group(3)}、鲜花:{match.group(4)}")
+                logger.info(f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}")
                 return True
         elements = self.driver.find_elements(By.ID, "sign_title")
         for element in elements:
@@ -41,3 +42,4 @@ class signClass:
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
+        self.driver = None

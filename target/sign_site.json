@@ -1,12 +1,12 @@
 {
     "all": true,
-    "signSite": [
+    "module_list": [
         {
-            "fileName": "azusaSign.py",
+            "module_name": "azusaSign",
             "url": "https://azusa.wiki/index.php"
         },
         {
-            "fileName": "btschoolSign.py",
+            "module_name": "btschoolSign",
             "url": "https://pt.btschool.club/index.php"
         }
     ]

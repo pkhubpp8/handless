@@ -7,8 +7,6 @@ import queue
 
 logger = logging.getLogger('sign')
 def load_target_json(dir, json_file):
-    all = 1
-    sites = None
     try:
         with open(dir + '/' + json_file, 'r') as file:
             data = json.load(file)
@@ -33,20 +31,20 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
             logger.info(f'导入{dir}.{module_name}成功')
     else:
         unique_sign_sites = []
-        seen_filenames = set()
+        seen_module_names = set()
         for site in sites:
-            if "fileName" in site:
-                filename = site["fileName"]
-                if filename not in seen_filenames:
-                    seen_filenames.add(filename)
+            if "module_name" in site:
+                module_name = site["module_name"]
+                if module_name not in seen_module_names:
+                    seen_module_names.add(module_name)
                     unique_sign_sites.append(site)
                 else:
-                    logger.info(f"重复的fileName: {filename}, 忽略")
+                    logger.info(f"重复的module: {module_name}, 忽略")
         for site in unique_sign_sites:
-            module = importlib.import_module(f'{dir}.{site["fileName"][:-3]}')
+            module = importlib.import_module(f'{dir}.{site["module_name"]}')
             if site["url"]:
                 sign_queue.put(module.signClass(driver, site["url"]))
             else:
                 sign_queue.put(module.signClass(driver))
-            logger.info(f'导入{site["fileName"][:-3]}成功')
+            logger.info(f'导入{site["module_name"]}成功')
     return sign_queue

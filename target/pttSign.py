@@ -5,9 +5,10 @@ import logging
 logger = logging.getLogger('sign')
 
 class signClass:
-    def __init__(self, driver, url = 'https://www.pttime.org/index.php'):
+    def __init__(self, driver, url = 'https://www.pttime.org/index.php', module_name: str = 'pttSign'):
         self.indexUrl = url
         self.driver = driver
+        self.module_name = module_name
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
@@ -39,3 +40,4 @@ class signClass:
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
+        self.driver = None
