@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 import re
 import logging
+import time
 
 logger = logging.getLogger('sign')
 
@@ -25,6 +26,16 @@ class signClass:
             return False
         elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
         for element in elements:
+            logger.info(f"oldman sign result: {element.text}")
+            match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
+            if match:
+                logger.info(f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}")
+                return True
+        logger.info("sleep 1秒")
+        time.sleep(1)
+        elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
+        for element in elements:
+            logger.info(f"oldman sign result: {element.text}")
             match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
             if match:
                 logger.info(f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}")

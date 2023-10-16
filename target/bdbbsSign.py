@@ -2,21 +2,17 @@ from selenium.webdriver.common.by import By
 import re
 import logging
 import time
+from ._BASE import signBase
 
 logger = logging.getLogger('sign')
 
-class signClass:
+class signClass(signBase):
     def __init__(self, driver, url = 'https://www.manhuabudangbbs.com/', module_name: str = 'bdbbsSign'):
         self.indexUrl = url
         self.driver = driver
         self.module_name = module_name
         self.site_name = "manhuabudangbbs"
-        self.sign_result = False
-        self.sign_result_info = ""
-        self.need_resign = False
-        self.new_message = ""
-        self.result = None
-        self.extra_info = {}
+        super().__init__()
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
@@ -58,7 +54,7 @@ class signClass:
             match = re.search('连续(\d+)天打卡', element.text)
             if match:
                 self.sign_result = True
-                self.sign_result_info = "已经签到过了。连续{match.group(1)}天打卡"
+                self.sign_result_info = f"已经签到过了。连续{match.group(1)}天打卡"
                 return True
             if re.search('每日打卡|\d+天未打卡', element.text):
                 self.sign_result_info = f"未曾打卡"
@@ -66,7 +62,7 @@ class signClass:
         logger.info(f"未知异常。")
         self.sign_result_info = f"未知异常"
         return False
-    def collect_info(self):
+    def collect_info(self) -> dict:
         self.result = {
             "module_name": self.module_name,
             "site_name": self.site_name,
@@ -78,6 +74,7 @@ class signClass:
             "new_message": self.new_message,
             "extra_info": self.extra_info
         }
+        return self.result
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

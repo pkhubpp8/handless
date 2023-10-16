@@ -26,6 +26,8 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
         py_files = [f[:-3] for f in os.listdir(dir) if f.endswith('.py')]
         # 动态导入.py文件
         for module_name in py_files:
+            if module_name == '_BASE':
+                continue
             module = importlib.import_module(f'{dir}.{module_name}')
             sign_queue.put(module.signClass(driver))
             logger.info(f'导入{dir}.{module_name}成功')

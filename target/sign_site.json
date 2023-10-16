@@ -2,12 +2,8 @@
     "all": true,
     "module_list": [
         {
-            "module_name": "azusaSign",
-            "url": "https://azusa.wiki/index.php"
-        },
-        {
-            "module_name": "btschoolSign",
-            "url": "https://pt.btschool.club/index.php"
+            "module_name": "bdbbsSign",
+            "url": ""
         }
     ]
 }
