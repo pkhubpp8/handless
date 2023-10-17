@@ -49,7 +49,7 @@ def do_sign(driver, logger) -> []:
             if hasattr(sign, 'collect_info') and callable(getattr(sign, 'collect_info')):
                 logger.info(sign.collect_info())
         except Exception as e:
-            logger.error("something error: {e}")
+            logger.error(f"something error: {e}")
             failedList.append(sign)
         sign.exit()
 
