@@ -1,5 +1,5 @@
 class signBase:
-    def __init__(self):
+    def __init__(self, site_name):
         self.sign_result = False
         self.sign_result_info = ""
         self.need_resign = False

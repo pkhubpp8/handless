@@ -11,8 +11,7 @@ class signClass(signBase):
         self.indexUrl = url
         self.driver = driver
         self.module_name = module_name
-        self.site_name = "manhuabudangbbs"
-        super().__init__()
+        super().__init__("manhuabudangbbs")
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

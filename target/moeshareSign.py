@@ -2,14 +2,16 @@ from selenium.webdriver.common.by import By
 import re
 import logging
 import time
+from ._BASE import signBase
 
 logger = logging.getLogger('sign')
 
-class signClass:
+class signClass(signBase):
     def __init__(self, driver, url = 'https://moeshare.cc/', module_name: str = 'moeshareSign'):
         self.indexUrl = url
         self.driver = driver
         self.module_name = module_name
+        super().__init__("moeshare")
     def accessIndex(self):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
