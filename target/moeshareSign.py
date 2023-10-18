@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 import re
 import logging
 import time
+import datetime
 from ._BASE import signBase
 
 logger = logging.getLogger('sign')
@@ -28,14 +29,15 @@ class signClass(signBase):
         if len(elements) == 1:
             match = re.search('(.*新消息)\n.*', elements[0].text)
             if match:
-                logger.info(match.group(1))
+                self.new_message = match.group(1)
             else:
                 logger.warning("message_remind")
+                self.new_message = "message_remind: " + elements[0].text
             return True
         elif len(elements) == 0:
             return False
         else:
-            logger.info(elements[0].text)
+            self.new_message = elements[0].text
             logger.warning(f"找到elements长度{len(elements)}异常")
             return False
     def sign(self):
@@ -58,18 +60,21 @@ class signClass(signBase):
                 return
     def validSign(self):
         if not re.search('Powered by phpwind', self.driver.title):
-            logger.info(f"标题异常：{self.driver.title}")
+            self.sign_result = False
+            self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
         elements = self.driver.find_elements(By.CLASS_NAME, "card")
         for element in elements:
             if element.text == '每日打卡' and element.get_attribute("disabled") == 'true':
-                logger.info(f"已经签到过了。")
+                self.sign_result = True
+                self.sign_result_info = f"已经签到过了。"
                 return True
             elif element.text == '每日打卡' and element.get_attribute("disabled") != 'true':
+                self.sign_result = False
                 if hasattr(self, 'liveness') and self.liveness < 10:
-                    logger.info(f"未签到。活跃度不够: {self.liveness}")
+                    self.sign_result_info = f"未签到。活跃度不够: {self.liveness}"
                 else:
-                    logger.info(f"未签到。先调用sign")
+                    self.sign_result_info = f"未签到。先调用sign"
                 return False
             # 这是未打卡。无论活跃度多少
             # <button id="punch" type="button" onclick="punchJob();" class="card">每日打卡</button>
@@ -77,8 +82,26 @@ class signClass(signBase):
             # <button id="punch" type="button" onclick="punchJob();" class="card card_old" disabled="">每日打卡</button>
             # 这是打完卡，重新进来
             # <button type="button" class="card card_old" disabled="">每日打卡</button>
-        logger.info(f"未知异常。")
+        self.sign_result = False
+        self.sign_result_info = f"未知异常。"
         return False
+    def auto_reply_for_liveness(self):
+        # 10月18日 00:22:25, 新的一天，灌点水，拿点活跃度
+        reply_info = f"{datetime.datetime.now().strftime('%m月%d日 %H:%M:%S')}, 新的一天，灌点水，拿点活跃度"
+        # todo
+    def collect_info(self) -> dict:
+        self.result = {
+            "module_name": self.module_name,
+            "site_name": self.site_name,
+            "site_url": self.indexUrl,
+            "sign_result": self.sign_result,
+            "sign_result_info": self.sign_result_info,
+            "date_and_time": int(time.time()),
+            "need_resign": False,
+            "new_message": self.new_message,
+            "extra_info": self.extra_info
+        }
+        return self.result
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

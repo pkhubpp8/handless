@@ -35,20 +35,37 @@ class signClass(signBase):
                 break
     def validSign(self):
         if not re.search('HDArea.*NexusPHP', self.driver.title):
-            logger.info(f"标题异常：{self.driver.title}")
+            self.sign_result = False
+            self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
         if hasattr(self, 'alert_text') and self.alert_text is not None:
             match = re.search('已连续签到(\d+)天，此次签到您获得了(\d+)魔力值奖励!', self.alert_text)
             if match:
-                logger.info(f"连续签到{match.group(1)}，获得魔力{match.group(2)}")
+                self.sign_result = True
+                self.sign_result_info = f"连续签到{match.group(1)}，获得魔力{match.group(2)}"
                 return True
         elements = self.driver.find_elements(By.ID, "sign_in_done")
         for element in elements:
             if element.text == '[已签到]':
-                logger.info(f"已经签到过了。")
+                self.sign_result = True
+                self.sign_result_info = f"已经签到过了。"
                 return True
-        logger.info(f"未知异常。")
+        self.sign_result = False
+        self.sign_result_info = f"未知异常。"
         return False
+    def collect_info(self) -> dict:
+        self.result = {
+            "module_name": self.module_name,
+            "site_name": self.site_name,
+            "site_url": self.indexUrl,
+            "sign_result": self.sign_result,
+            "sign_result_info": self.sign_result_info,
+            "date_and_time": int(time.time()),
+            "need_resign": False,
+            "new_message": self.new_message,
+            "extra_info": self.extra_info
+        }
+        return self.result
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

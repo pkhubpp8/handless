@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 import re
 import logging
+import time
 from ._BASE import signBase
 
 logger = logging.getLogger('sign')
@@ -23,22 +24,39 @@ class signClass(signBase):
                 break
     def validSign(self):
         if not re.search('PTT.*NexusPHP', self.driver.title):
-            logger.info(f"标题异常：{self.driver.title}")
+            self.sign_result = False
+            self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
         elements = self.driver.find_elements(By.CLASS_NAME, "embedded")
         for element in elements:
             match = re.search('这是[你您]的第\s+(\d+)\s+次签到.*已连续签到\s+(\d+)\s+天.*本次签到获得\s+(\d+)\s+个魔力值', element.text)
             if match:
-                logger.info(f"第{match.group(1)}次签到，连续签到{match.group(2)}，获得魔力{match.group(3)}")
+                self.sign_result = True
+                self.sign_result_info = f"第{match.group(1)}次签到，连续签到{match.group(2)}，获得魔力{match.group(3)}"
                 return True
         elements = self.driver.find_elements(By.CSS_SELECTOR, 'a[class="fcs"]')
         for element in elements:
             match = re.search('attendance.php', element.get_attribute("href"))
             if match:
-                logger.info(f"已经签到过了。")
+                self.sign_result = True
+                self.sign_result_info = f"已经签到过了。"
                 return True
-        logger.info(f"未知异常。")
+        self.sign_result = False
+        self.sign_result_info = f"未知异常。"
         return False
+    def collect_info(self) -> dict:
+        self.result = {
+            "module_name": self.module_name,
+            "site_name": self.site_name,
+            "site_url": self.indexUrl,
+            "sign_result": self.sign_result,
+            "sign_result_info": self.sign_result_info,
+            "date_and_time": int(time.time()),
+            "need_resign": False,
+            "new_message": self.new_message,
+            "extra_info": self.extra_info
+        }
+        return self.result
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

@@ -6,3 +6,4 @@ class signBase:
         self.new_message = ""
         self.result = None
         self.extra_info = {}
+        self.site_name = site_name

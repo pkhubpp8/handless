@@ -25,9 +25,23 @@ class signClass(signBase):
         pass
     def validSign(self):
         if not re.search('游戏怀旧灌水', self.driver.title):
-            logger.info(f"标题异常：{self.driver.title}")
+            self.sign_result = False
+            self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
         return True
+    def collect_info(self) -> dict:
+        self.result = {
+            "module_name": self.module_name,
+            "site_name": self.site_name,
+            "site_url": self.indexUrl,
+            "sign_result": self.sign_result,
+            "sign_result_info": self.sign_result_info,
+            "date_and_time": int(time.time()),
+            "need_resign": False,
+            "new_message": self.new_message,
+            "extra_info": self.extra_info
+        }
+        return self.result
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

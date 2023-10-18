@@ -56,9 +56,10 @@ class signClass(signBase):
                 self.sign_result_info = f"已经签到过了。连续{match.group(1)}天打卡"
                 return True
             if re.search('每日打卡|\d+天未打卡', element.text):
+                self.sign_result = False
                 self.sign_result_info = f"未曾打卡"
                 return False
-        logger.info(f"未知异常。")
+        self.sign_result = False
         self.sign_result_info = f"未知异常"
         return False
     def collect_info(self) -> dict:

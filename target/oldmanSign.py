@@ -16,6 +16,18 @@ class signClass(signBase):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
+    def msgCheck(self) -> bool:
+        elements = self.driver.find_elements(By.ID, "nav-usernotice")
+        if len(elements) == 1:
+            match = re.search('消息\s*(\d)', elements[0].text)
+            if match:
+                self.new_message = f"消息 {match.group(1)}"
+                return True
+            else:
+                return False
+        else:
+            logger.warning(f"找到elements长度{len(elements)}异常")
+            return False
     def sign(self):
         elements = self.driver.find_elements(By.ID, "sign_title")
         for element in elements:
@@ -24,34 +36,53 @@ class signClass(signBase):
                 return
     def validSign(self):
         if not re.search('老男人游戏网配套论坛', self.driver.title):
-            logger.info(f"标题异常：{self.driver.title}")
+            self.sign_result = False
+            self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
         elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
         for element in elements:
-            logger.info(f"oldman sign result: {element.text}")
+            logger.info(f"oldman sign1 result: {element.text}")
             match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
             if match:
-                logger.info(f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}")
+                self.sign_result = True
+                self.sign_result_info = f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}"
                 return True
         logger.info("sleep 1秒")
         time.sleep(1)
         elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
         for element in elements:
-            logger.info(f"oldman sign result: {element.text}")
+            logger.info(f"oldman sign2 result: {element.text}")
             match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
             if match:
-                logger.info(f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}")
+                self.sign_result = True
+                self.sign_result_info = f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}"
                 return True
         elements = self.driver.find_elements(By.ID, "sign_title")
         for element in elements:
             if element.text == '已签':
-                logger.info('已经签到过了。')
+                self.sign_result = True
+                self.sign_result_info = '已经签到过了。'
                 return True
             if element.text == '签到':
-                logger.info('还未签到。')
+                self.sign_result = False
+                self.sign_result_info = "还未签到。"
                 return False
-        logger.info(f"未知异常。")
+        self.sign_result = False
+        self.sign_result_info = f"未知异常。"
         return False
+    def collect_info(self) -> dict:
+        self.result = {
+            "module_name": self.module_name,
+            "site_name": self.site_name,
+            "site_url": self.indexUrl,
+            "sign_result": self.sign_result,
+            "sign_result_info": self.sign_result_info,
+            "date_and_time": int(time.time()),
+            "need_resign": False,
+            "new_message": self.new_message,
+            "extra_info": self.extra_info
+        }
+        return self.result
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
