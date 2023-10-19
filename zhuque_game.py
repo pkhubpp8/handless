@@ -6,6 +6,7 @@ import sys
 import os
 import zlib
 import datetime
+import traceback
 from bs4 import BeautifulSoup
 from init import firefox_profile
 from init import sql
@@ -51,6 +52,7 @@ def initGame(game: GAME):
     if not game:
         logger.error("game初始化异常")
         return
+
     currentUA = None
     tempDriver = None
     profile_dir = firefox_profile.getDefaultProfilePath()
@@ -65,6 +67,7 @@ def initGame(game: GAME):
 
     if not currentUA:
         currentUA = firefox_profile.getUA(tempDriver)
+
     sid = localSql.getCookieByUrlAndName('zhuque.in', 'connect.sid')
 
     game.setCookie(f"connect.sid={sid}")
@@ -132,10 +135,12 @@ def getData(funcName, response):
                 except Exception as e:
                     logger.debug("%s deflate 解压缩失败: %s", funcName, e)
             logger.info(f"{funcName} 请求成功")
+            if funcName == "getCsrfToken":
+                return content.decode("utf-8")
             data = json.loads(content.decode("utf-8"))
             return data
         except json.JSONDecodeError as e:
-            logger.error(f"{funcName} 无法解析JSON, code {response.status_code}: {e}")
+            logger.warning(f"{funcName} 无法解析JSON, code {response.status_code}: {e}")
     elif response.status_code == 401:
         logger.error(f"{funcName} 鉴权无效 {response.status_code}。进程退出。请重新登录并更新cookie")
         sys.exit(-1)
@@ -163,7 +168,7 @@ def getCsrfToken(ua: str, cookie: str):
     }
     response = requests.get(url, headers=headers)
     content = getData(getCsrfToken.__name__, response)
-    indexSoup = BeautifulSoup(response.content.decode('utf-8'), 'html.parser')
+    indexSoup = BeautifulSoup(content, 'html.parser')
     csrfToken = indexSoup.find('meta', {'name':'x-csrf-token'})
     return csrfToken.attrs['content']
 
@@ -253,12 +258,19 @@ def releaseAll(ua: str, cookie: str, csrf: str):
 
 def getNextTimeStamp(characterList):
     if len(characterList) > 0:
-        timeStamp = characterList[0]['info']['next_time']
-        id = characterList[0]['id']
-        for i in characterList:
-            if (i['magic'] == 1 or i['magic'] == 2) and i['info']['next_time'] < timeStamp:
-                timeStamp = i['info']['next_time']
-                id = i['id']
+        timeStamp = None #characterList[0]['info']['next_time']
+        id = None #characterList[0]['id']
+        for ch in characterList:
+            if not ch['info']:
+                logger.warning("新角色，请手动获取")
+                continue
+            if timeStamp == None and id == None and (ch['magic'] == 1 or ch['magic'] == 2):
+                timeStamp = ch['info']['next_time']
+                id = ch['id']
+                continue
+            if (ch['magic'] == 1 or ch['magic'] == 2) and ch['info']['next_time'] < timeStamp:
+                timeStamp = ch['info']['next_time']
+                id = ch['id']
         return id
     else:
         return 0
@@ -266,9 +278,12 @@ def getNextTimeStamp(characterList):
 
 def checkIfAllCharactersNeedLvlUpAndDoLvlUp(characterList, game: GAME):
     isLvlUp = False
-    for i in characterList:
-        if checkIfCharacterNeedLvlUp(i):
-            data = doLvlUp(i, game.getUA(), game.getCookie(), game.getCSRF())
+    for ch in characterList:
+        if not ch['info']:
+            logger.warning("新角色，请手动获取")
+            continue
+        if checkIfCharacterNeedLvlUp(ch):
+            data = doLvlUp(ch, game.getUA(), game.getCookie(), game.getCSRF())
             if "status" in data and 'code' in data and data['status'] == 400 and data['code'] == 'INSUFFICIENT_BONUS':
                 logger.info("灵石不足，结束升级")
                 return isLvlUp
@@ -432,5 +447,6 @@ if __name__ == "__main__":
             current_wait_time = min(current_wait_time * 2, max_wait_time)  # 加倍等待时间，但不超过最大等待时间
             logger.warning(f"未知错误{e}，等待: {current_wait_time}")
             sleep_with_logging(current_wait_time)
+            logger.warning(traceback.format_exc())
 
     logger.info("程序结束")
