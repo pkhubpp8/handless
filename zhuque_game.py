@@ -437,7 +437,7 @@ if __name__ == "__main__":
                     current_wait_time = min(current_wait_time * 2, max_wait_time)  # 加倍等待时间，但不超过最大等待时间
                     sleep_with_logging(current_wait_time)
                     continue
-                logger.info(f"更新信息。此次升级消费{myRemainBonus - data['data']['bonus']}灵石")
+                logger.info(f"更新信息。此次升级消费{int(myRemainBonus - data['data']['bonus'])}灵石")
                 updateCostAndSalaryPerDay(myRemainBonus - data['data']['bonus'], 0, game)
             logger.info("一切正常，重置错误等待时间为5秒。等待20秒进入下一轮循环")
             current_wait_time = 5
