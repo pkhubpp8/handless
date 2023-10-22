@@ -40,6 +40,7 @@ class signClass(signBase):
             return False
         elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "今天签到")
         for element in elements:
+            logger.warning(f'签到结果: {element.text}')
             match = re.search('今天签到您获得(\d+)点魔力值', element.text)
             if match:
                 self.sign_result = True

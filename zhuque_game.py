@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from init import firefox_profile
 from init import sql
 from init import myLogger
+from helper import test_http_connection
 
 class GAME():
     def __init__(self):
@@ -258,8 +259,8 @@ def releaseAll(ua: str, cookie: str, csrf: str):
 
 def getNextTimeStamp(characterList):
     if len(characterList) > 0:
-        timeStamp = None #characterList[0]['info']['next_time']
-        id = None #characterList[0]['id']
+        timeStamp = None
+        id = None
         for ch in characterList:
             if not ch['info']:
                 logger.warning("新角色，请手动获取")
@@ -323,6 +324,13 @@ if __name__ == "__main__":
         logger.info("===========程序启动，尝试初始化会话")
         logger.info("===========程序启动，尝试初始化会话")
         logger.info("===========程序启动，尝试初始化会话")
+        while True:
+            if test_http_connection():
+                break
+            else:
+                logger.info("网络连接异常，20s后重试")
+                time.sleep(20)
+        
         game = GAME()
         initGame(game)
         logger.info("===========会话初始化成功")
