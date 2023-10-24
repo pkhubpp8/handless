@@ -57,7 +57,13 @@ class signClass(signBase):
                 return True
             if re.search('每日打卡|\d+天未打卡', element.text):
                 self.sign_result = False
-                self.sign_result_info = f"未曾打卡"
+                self.sign_result_info = f"未曾打卡1"
+                return False
+        elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
+        for element in elements:
+            if re.search('每日打卡|\d+天未打卡', element.text):
+                self.sign_result = False
+                self.sign_result_info = f"未曾打卡2"
                 return False
         self.sign_result = False
         self.sign_result_info = f"未知异常"

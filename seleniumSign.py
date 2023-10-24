@@ -1,6 +1,7 @@
 import os
 import sys
 from selenium.webdriver.common.by import By
+import queue
 # from selenium.webdriver.support.wait import WebDriverWait
 
 from init import firefox_profile
@@ -15,8 +16,7 @@ def printList(sign_list: [], logger):
         for sign in sign_list:
             logger.info(sign.indexUrl)
 
-
-def do_sign(driver, logger) -> []:
+def get_sign_queue(driver):
     # 获取目录下.py文件的文件名
     target_directory = 'target'
     data = moduleImport.load_target_json(target_directory, 'sign_site.json')
@@ -25,7 +25,9 @@ def do_sign(driver, logger) -> []:
     else:
         logger.info("import所有模块")
         sign_queue = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
+    return sign_queue
 
+def do_sign(sign_queue: queue.Queue, logger) -> []:
     succeedList = []
     failedList = []
     while not sign_queue.empty():
@@ -59,10 +61,10 @@ def do_sign(driver, logger) -> []:
     logger.info("签到失败列表：")
     printList(failedList, logger)
 
-    return failedList
+    return succeedList, failedList
 
 
-if __name__ == "__main__":
+def get_web_driver_and_logger():
     config_data = config_init.get_config()
     log_path = config_data['log_path']
     if not os.path.exists(log_path):
@@ -79,15 +81,19 @@ if __name__ == "__main__":
         logger.error(f"当前不支持")
         sys.exit(-1)
 
+    return driver, logger
+
+if __name__ == "__main__":
+    driver, logger = get_web_driver_and_logger()
     '''
     WebDriverWait(driver, 10).until(
             lambda wd: driver.execute_script("return document.readyState") == 'complete',
             "Page taking too long to load"
         )
     '''
-    if driver:
-        do_sign(driver, logger)
-
+    if driver and logger:
+        sign_queue = get_sign_queue(driver)
+        do_sign(sign_queue, logger)
         driver.quit()
     else:
         logger.error(f"webdriver 初始化失败")

@@ -34,6 +34,7 @@ class signClass(signBase):
                 element.click()
                 break
     def validSign(self):
+        # 'BTSCHOOL :: 首页 比特校园PT小乐园 - Powered by NexusPHP'
         if not re.search('BTSCHOOL.*NexusPHP', self.driver.title):
             self.sign_result = False
             self.sign_result_info = f"标题异常：{self.driver.title}"
