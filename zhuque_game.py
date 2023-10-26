@@ -45,7 +45,7 @@ logPath = 'log/'
 if not os.path.exists(logPath):
     # 如果路径不存在，使用os.makedirs()函数创建它
     os.makedirs(logPath)
-game_log_path = logPath + 'game.log'
+game_log_path = logPath + 'game'
 geckodriver_log_path = logPath + 'geckodriver.log'
 logger = myLogger.myLogger('game', game_log_path).getLogger()
 
@@ -330,7 +330,7 @@ if __name__ == "__main__":
             else:
                 logger.info("网络连接异常，20s后重试")
                 time.sleep(20)
-        
+
         game = GAME()
         initGame(game)
         logger.info("===========会话初始化成功")
