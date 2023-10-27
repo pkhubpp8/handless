@@ -21,15 +21,15 @@ class signClass(signBase):
         elements = self.driver.find_elements(By.CLASS_NAME, "noty_text")
         if len(elements) == 1:
             if '新信息' in elements[0].text:
-                self.new_message = elements[0].text
+                self.new_message = elements[0].text.strip()
             else:
                 logger.warning(elements[0].text)
-                self.new_message = "warning: " + elements[0].text
+                self.new_message = "warning: " + elements[0].text.strip()
             return True
         elif len(elements) == 0:
             return False
         else:
-            self.new_message = elements[0].text
+            self.new_message = "warning: " + elements[0].text.strip()
             logger.warning(f"找到elements长度{len(elements)}异常")
             return False
     def sign(self):

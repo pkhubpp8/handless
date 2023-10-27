@@ -23,12 +23,27 @@ class signClass(signBase):
                 element.click()
                 time.sleep(1)
                 break
+    def valid_access(self):
+        if not re.search('Powered by phpwind', self.driver.title):
+            self.access_result = False
+            self.access_result_info = f"标题异常：{self.driver.title}"
+            return False
+        elements = self.element = self.driver.find_elements(By.ID, 'td_userinfomore')
+        for element in elements:
+            if element.text:
+                self.access_result = True
+                self.access_result_info = ""
+                return True
+        self.access_result = False
+        self.access_result_info = f"未登录"
+        return False
     def sign(self):
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.card_old.fr")
         if len(elements) > 0:
             for element in elements:
                 match = re.search('连续(\d+)天打卡', element.text)
                 if match:
+                    logger.info('已打卡，无需打卡')
                     return
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
         for element in elements:
@@ -39,6 +54,7 @@ class signClass(signBase):
                 self.driver.refresh()
                 time.sleep(1)
                 return
+        logger.warning('打卡过程异常')
     def validSign(self):
         if not re.search('Powered by phpwind', self.driver.title):
             self.sign_result_info = f"标题异常：{self.driver.title}"
@@ -73,6 +89,8 @@ class signClass(signBase):
             "module_name": self.module_name,
             "site_name": self.site_name,
             "site_url": self.indexUrl,
+            "access_result": self.access_result,
+            "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),

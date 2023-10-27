@@ -24,20 +24,34 @@ class signClass(signBase):
                 element.click()
                 time.sleep(1)
                 break
+    def valid_access(self):
+        if not re.search('Powered by phpwind', self.driver.title):
+            self.access_result = False
+            self.access_result_info = f"标题异常：{self.driver.title}"
+            return False
+        elements = self.element = self.driver.find_elements(By.ID, 'td_userinfomore')
+        for element in elements:
+            if element.text:
+                self.access_result = True
+                self.access_result_info = ""
+                return True
+        self.access_result = False
+        self.access_result_info = f"未登录"
+        return False
     def msgCheck(self) -> bool:
         elements = self.driver.find_elements(By.ID, "message_remind")
         if len(elements) == 1:
             match = re.search('(.*新消息)\n.*', elements[0].text)
             if match:
-                self.new_message = match.group(1)
+                self.new_message = match.group(1).strip()
             else:
                 logger.warning("message_remind")
-                self.new_message = "message_remind: " + elements[0].text
+                self.new_message = "message_remind: " + elements[0].text.strip()
             return True
         elif len(elements) == 0:
             return False
         else:
-            self.new_message = elements[0].text
+            self.new_message = "warning: " + elements[0].text.strip()
             logger.warning(f"找到elements长度{len(elements)}异常")
             return False
     def sign(self):
@@ -94,6 +108,8 @@ class signClass(signBase):
             "module_name": self.module_name,
             "site_name": self.site_name,
             "site_url": self.indexUrl,
+            "access_result": self.access_result,
+            "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),

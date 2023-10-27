@@ -27,7 +27,7 @@ def get_sign_queue(driver):
         sign_queue = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
     return sign_queue
 
-def do_sign(sign_queue: queue.Queue, logger) -> []:
+def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
     succeedList = []
     failedList = []
     while not sign_queue.empty():
@@ -37,6 +37,13 @@ def do_sign(sign_queue: queue.Queue, logger) -> []:
         try:
             if hasattr(sign, 'accessIndex') and callable(getattr(sign, 'accessIndex')):
                 sign.accessIndex()
+            if hasattr(sign, 'valid_access') and callable(getattr(sign, 'valid_access')):
+                if not sign.valid_access():
+                    if hasattr(sign, 'collect_info') and callable(getattr(sign, 'collect_info')):
+                        logger.info(sign.collect_info())
+                    failedList.append(sign)
+                    sign.exit()
+                    continue
             if hasattr(sign, 'sign') and callable(getattr(sign, 'sign')):
                 sign.sign()
             if hasattr(sign, 'msgCheck') and callable(getattr(sign, 'msgCheck')):
@@ -46,6 +53,9 @@ def do_sign(sign_queue: queue.Queue, logger) -> []:
                     succeedList.append(sign)
                 else:
                     failedList.append(sign)
+                    driver.save_screenshot('log/' + sign.module_name + '_snapshot.png')
+                    with open('log/' + sign.module_name + '_page.html', 'w', encoding='utf-8') as file:
+                        file.write(driver.page_source)
             else:
                 failedList.append(sign)
             if hasattr(sign, 'collect_info') and callable(getattr(sign, 'collect_info')):
@@ -93,7 +103,7 @@ if __name__ == "__main__":
     '''
     if driver and logger:
         sign_queue = get_sign_queue(driver)
-        do_sign(sign_queue, logger)
+        do_sign(sign_queue, logger, driver)
         driver.quit()
     else:
         logger.error(f"webdriver 初始化失败")

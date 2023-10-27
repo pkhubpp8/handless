@@ -26,6 +26,7 @@ class signClass(signBase):
             else:
                 return False
         else:
+            self.new_message = "warning: " + elements[0].text.strip()
             logger.warning(f"找到elements长度{len(elements)}异常")
             return False
     def sign(self):
