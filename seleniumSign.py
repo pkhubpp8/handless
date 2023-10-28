@@ -75,7 +75,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
 
 
 def get_web_driver_and_logger():
-    config_data = config_init.get_config()
+    config_data = config_init.get_config_for_sign()
     log_path = config_data['log_path']
     if not os.path.exists(log_path):
         os.makedirs(log_path)
