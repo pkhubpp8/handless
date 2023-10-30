@@ -45,8 +45,12 @@ class signClass(signBase):
                 if match:
                     logger.info('已打卡，无需打卡')
                     return
+        # elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
+        # 不知为何，sign的时候用By.CSS_SELECTOR, "div.card.fr"的结果会是"未曾打卡2"
+        # elements = self.driver.find_elements(By.ID, "punch")
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
         for element in elements:
+            logger.warning(f"this is only for test: {element.text}")
             match = re.search('每日打卡|\d+天未打卡', element.text)
             if match:
                 element.click()
