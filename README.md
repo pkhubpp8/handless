@@ -6,6 +6,11 @@
 3. 当前只支持firefox浏览器
 4. 暂时无法过cf真人验证
 
+## DNSPod
++ 原理：使用requests库发送http请求
+1. 直接运行`activate_virtualenv_and_ddns.bat`
+2. 可以把bat脚本放入开启启动
+
 ## 签到、保活
 + 原理：使用selenium操作浏览器进行模拟点击
 1. 下载geckodriver.exe：<https://github.com/mozilla/geckodriver/releases>

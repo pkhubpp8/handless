@@ -40,7 +40,7 @@ def getDefaultProfilePath():
     appdata_path = os.path.expandvars('%AppData%')
     file_path = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles') # \xhvtyp4t.default-release-1583421326042')
     if os.path.exists(file_path):
-        print(f'路径 {file_path} 存在')
+        logging.info(f'路径 {file_path} 存在')
         subdirectories = [d for d in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, d))]
         if len(subdirectories) == 1:
             profile_dir = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles', subdirectories[0])

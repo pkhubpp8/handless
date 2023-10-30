@@ -18,12 +18,6 @@ class signClass(signBase):
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
         time.sleep(1)
-        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "每日打卡")
-        for element in elements:
-            if element.get_attribute("href") == (self.indexUrl + 'u.php'):
-                element.click()
-                time.sleep(1)
-                break
     def valid_access(self):
         if not re.search('Powered by phpwind', self.driver.title):
             self.access_result = False
@@ -34,6 +28,12 @@ class signClass(signBase):
             if element.text:
                 self.access_result = True
                 self.access_result_info = ""
+                elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "每日打卡")
+                for element in elements:
+                    if element.get_attribute("href") == (self.indexUrl + 'u.php'):
+                        element.click()
+                        time.sleep(1)
+                        break
                 return True
         self.access_result = False
         self.access_result_info = f"未登录"

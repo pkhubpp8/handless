@@ -11,7 +11,6 @@ def get_ipv4_icanhazip():
     except Exception as e:
         print('Error:', e)
 
-
 def get_ipv4_ipify():
     try:
         response = requests.get('https://api.ipify.org')
@@ -44,7 +43,7 @@ def get_ipv4_ipv4icanhazip():
             print('Error: Unable to retrieve IPv4 address.')
     except Exception as e:
         print('Error:', e)
-        
+
 def get_ipv4_ip4onlyme():
     try:
         response = requests.get('http://ip4only.me/api/')
@@ -56,4 +55,3 @@ def get_ipv4_ip4onlyme():
             print('Error: Unable to retrieve IPv4 address.')
     except Exception as e:
         print('Error:', e)
-

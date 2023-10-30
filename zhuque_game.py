@@ -305,7 +305,7 @@ def checkIfCharacterNeedLvlUp(character):
         magic == 3, 绑定的角色在释放技能时有几率免除冷却时间
         magic == 4, 绑定的角色在释放技能时有几率获得双倍灵石
     '''
-    if character['magic'] == 1 and character['info']['ratio'] == 0.5 and character['info']['level'] < 75:
+    if character['magic'] == 1 and character['info']['ratio'] == 0.5 and character['info']['level'] < 79:
         return True
     return False
 
