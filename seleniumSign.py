@@ -2,6 +2,7 @@ import os
 import sys
 from selenium.webdriver.common.by import By
 import queue
+import traceback
 # from selenium.webdriver.support.wait import WebDriverWait
 
 from init import firefox_profile
@@ -62,6 +63,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
                 logger.info(sign.collect_info())
         except Exception as e:
             logger.error(f"something error: {e}")
+            logger.warning(traceback.format_exc())
             failedList.append(sign)
         sign.exit()
 
