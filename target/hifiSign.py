@@ -43,7 +43,7 @@ $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
             match = re.search('成功签到！今日排名(\d+).*总奖励(\d+)金币！', element.text)
             if match:
                 self.sign_result = True
-                self.sign_result_info = f"第{match.group(1)}名签到. 奖励金币:{match.group(3)}"
+                self.sign_result_info = f"第{match.group(1)}名签到. 奖励金币:{match.group(2)}"
                 return True
         elements = self.driver.find_elements(By.ID, "sign")
         for element in elements:
