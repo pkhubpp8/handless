@@ -102,5 +102,6 @@ def create_firefox_with_user_profile(webdriver_log_path: str):
     from selenium import webdriver
     service = webdriver.firefox.service.Service(log_path = webdriver_log_path)
     driver = webdriver.Firefox(options = ffOptions, service = service)
+    driver.maximize_window()
     logging.info(driver.execute_script("return navigator.userAgent"))
     return driver
