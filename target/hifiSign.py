@@ -52,8 +52,15 @@ $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
                 self.sign_result_info = '已经签到过了。'
                 return True
             if element.text == '签到':
+                self.driver.refresh()
+                time.sleep(2)
+                es = self.driver.find_elements(By.ID, "sign")
+                if len(es) == 1 and es[0].text == '已签':
+                    self.sign_result = True
+                    self.sign_result_info = "异常未弹窗。已经签到过了。"
+                    return True
                 self.sign_result = False
-                self.sign_result_info = "还未签到。"
+                self.sign_result_info = "确实未签到。"
                 return False
         self.sign_result = False
         self.sign_result_info = f"未知异常。"
