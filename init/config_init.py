@@ -25,3 +25,18 @@ def get_config_for_ddns() -> dict:
         "record_type": record_type
     }
     return result
+
+def get_config_for_qbwebui() -> dict:
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    webui_ip = config.get('QB', 'webui_ip')
+    webui_port = config.get('QB', 'webui_port')
+    username = config.get('QB', 'username')
+    password = config.get('QB', 'password')
+    result = {
+        "webui_ip": webui_ip,
+        "webui_port": webui_port,
+        "username": username,
+        "password": password
+    }
+    return result
