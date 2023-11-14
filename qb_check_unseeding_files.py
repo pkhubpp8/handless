@@ -2,6 +2,8 @@ import requests
 import json
 import sys
 import os
+import re
+
 from init import config_init
 
 
@@ -46,7 +48,7 @@ def get_torrents_info(url, sid_cookie, category = ''):
         sys.exit()
     return torrents_info
 
-def check_if_file_is_seeding(file_path, is_sub = False):
+def check_if_file_is_seeding(file_path, torrents_info, is_sub = False):
     if not os.path.isdir(file_path):
         return
     subfiles = [f for f in os.listdir(file_path)]
@@ -64,14 +66,79 @@ def check_if_file_is_seeding(file_path, is_sub = False):
                 pass
                 print(f'dbg: {file} not in')
 
+
+def get_trackers_info(url, sid_cookie, torrent):
+    get_trackers_info_url = url + '/api/v2/torrents/trackers'
+    data = {'hash': torrent['hash']}
+    headers = {'Cookie': f'SID={sid_cookie}'}
+    response = requests.post(get_trackers_info_url, headers=headers, data=data)
+    if response.ok == True:
+        torrent_trackers_info = response.json()
+        return torrent_trackers_info
+    else:
+        print(f"获取{torrent['hash']}，{torrent['name']}的tracker信息失败")
+        return []
+
+
+def check_tracker_msg(msg):
+    if re.search('torrent not registered with this tracker', msg):
+        return True
+    return False
+
+
+def delete_torrent_and_files(url, sid_cookie, h):
+    get_trackers_info_url = url + '/api/v2/torrents/delete'
+    data = {'hashes': h, 'deleteFiles': 'true'}
+    headers = {'Cookie': f'SID={sid_cookie}'}
+    response = requests.post(get_trackers_info_url, headers=headers, data=data)
+    return response
+
+
+
 directory_path = './'
 result = config_init.get_config_for_qbwebui()
 url = 'http://' + result['webui_ip'] + ':' + result['webui_port']
 sid_cookie = login(url, result['username'], result['password'])
 get_webui_version(url, sid_cookie)
-torrents_info = get_torrents_info(url, sid_cookie)
+all_torrents_info = get_torrents_info(url, sid_cookie)
 
-check_if_file_is_seeding(directory_path)
+# check_if_file_is_seeding(directory_path, all_torrents_info)
+
+need_remove = []
+for torrent in all_torrents_info:
+    trackers_info = get_trackers_info(url, sid_cookie, torrent)
+    for t in trackers_info:
+        if re.search("^http.*", t['url']) and t['msg']:
+            if check_tracker_msg(t['msg']):
+                print(f"{torrent['hash']}, {torrent['name']}: {t}\n")
+                need_remove.append(torrent['hash'])
+                continue
+
+
+if not need_remove:
+    print("already clear!")
+    sys.exit()
+
+for h in need_remove:
+    r = delete_torrent_and_files(url, sid_cookie, h)
+    if r.ok == True:
+        print(f"deleted {h}")
+
+
+need_remove = []
+all_torrents_info = get_torrents_info(url, sid_cookie)
+
+for torrent in all_torrents_info:
+    trackers_info = get_trackers_info(url, sid_cookie, torrent)
+    for t in trackers_info:
+        if re.search("^http.*", t['url']) and t['msg']:
+            if check_tracker_msg(t['msg']):
+                print(f"{torrent['hash']}, {torrent['name']}: {t}\n")
+                need_remove.append(torrent['hash'])
+                continue
+
+if not need_remove:
+    print("clear!")
 
 '''
 print(torrent_info[0]['name'])
