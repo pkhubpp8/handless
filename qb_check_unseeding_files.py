@@ -111,7 +111,7 @@ for torrent in all_torrents_info:
         if re.search("^http.*", t['url']) and t['msg']:
             if check_tracker_msg(t['msg']):
                 print(f"{torrent['hash']}, {torrent['name']}: {t}\n")
-                need_remove.append(torrent['hash'])
+                need_remove.append(torrent)
                 continue
 
 
@@ -120,9 +120,12 @@ if not need_remove:
     sys.exit()
 
 for h in need_remove:
-    r = delete_torrent_and_files(url, sid_cookie, h)
+    r = delete_torrent_and_files(url, sid_cookie, h['hash'])
     if r.ok == True:
-        print(f"deleted {h}")
+        print(f"deleted {h['name']}")
+    else:
+        print(f"delete {h['name']} error")
+        print(r)
 
 
 need_remove = []
@@ -134,11 +137,16 @@ for torrent in all_torrents_info:
         if re.search("^http.*", t['url']) and t['msg']:
             if check_tracker_msg(t['msg']):
                 print(f"{torrent['hash']}, {torrent['name']}: {t}\n")
-                need_remove.append(torrent['hash'])
+                need_remove.append(torrent)
                 continue
 
 if not need_remove:
     print("clear!")
+else:
+    print("something wrong")
+    for i in need_remove:
+        print(i['name'])
+
 
 '''
 print(torrent_info[0]['name'])
