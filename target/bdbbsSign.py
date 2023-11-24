@@ -9,6 +9,7 @@ logger = logging.getLogger('sign')
 class signClass(signBase):
     def __init__(self, driver, url = 'https://www.manhuabudangbbs.com/index.php', module_name: str = 'bdbbsSign'):
         self.indexUrl = url
+        self.orig_index = 'https://www.manhuabudangbbs.com/'
         self.driver = driver
         self.module_name = module_name
         super().__init__("manhuabudangbbs")
@@ -19,7 +20,7 @@ class signClass(signBase):
         time.sleep(1)
         elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "每日打卡")
         for element in elements:
-            if element.get_attribute("href") == (self.indexUrl + 'u.php'):
+            if element.get_attribute("href") == (self.orig_index + 'u.php'):
                 element.click()
                 time.sleep(1)
                 break
