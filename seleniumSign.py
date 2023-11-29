@@ -10,12 +10,13 @@ from init import myLogger
 from init import config_init
 from helper import moduleImport
 
-def printList(sign_list: [], logger):
+def printList(sign_list: [], logger, is_detail: bool):
     if not sign_list:
         logger.info("空")
     else:
         for sign in sign_list:
-            logger.info(sign.indexUrl)
+            if is_detail:
+                logger.info(f"{sign.indexUrl}: {sign.result['sign_result_info']}")
 
 def get_sign_queue(driver):
     # 获取目录下.py文件的文件名
@@ -71,7 +72,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
     printList(succeedList, logger)
 
     logger.info("签到失败列表：")
-    printList(failedList, logger)
+    printList(failedList, logger, True)
 
     return succeedList, failedList
 
