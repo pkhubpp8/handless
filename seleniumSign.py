@@ -16,18 +16,24 @@ def printList(sign_list: [], logger, is_detail: bool):
     else:
         for sign in sign_list:
             if is_detail:
-                logger.info(f"{sign.indexUrl}: {sign.result['sign_result_info']}")
+                if sign.result:
+                    logger.info(f"{sign.indexUrl}: {sign.result.get('sign_result_info')}")
+                else:
+                    logger.info(f"{sign.indexUrl}: no result")
+            else:
+                logger.info(f"{sign.indexUrl}")
 
 def print_extra_info(sign_s_list: [], sign_f_list: []):
+    logger.info("start print extra info")
     if not sign_s_list and not sign_f_list:
         logger.info("空")
         return
     for sign in sign_s_list:
         if sign.result['extra_info'] or sign.result['new_message']:
-            logger.info(f"{sign.indexUrl}; extra info: {sign.result['extra_info']}; new message: {sign.result['new_message']}")
+            logger.info(f"s. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
     for sign in sign_f_list:
         if sign.result['extra_info'] or sign.result['new_message']:
-            logger.info(f"{sign.indexUrl}; extra info: {sign.result['extra_info']}; new message: {sign.result['new_message']}")
+            logger.info(f"f. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
 
 
 def get_sign_queue(driver):

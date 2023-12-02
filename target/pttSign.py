@@ -22,6 +22,20 @@ class signClass(signBase):
             if element.text == '签到领魔力':
                 element.click()
                 break
+    def valid_access(self):
+        if not re.search('PTT.*NexusPHP', self.driver.title):
+            self.access_result = False
+            self.access_result_info = f"标题异常：{self.driver.title}"
+            return False
+        elements = self.element = self.driver.find_elements(By.CLASS_NAME, 'User_Name')
+        for element in elements:
+            if element.text:
+                self.access_result = True
+                self.access_result_info = ""
+                return True
+        self.access_result = False
+        self.access_result_info = f"未登录"
+        return False
     def validSign(self):
         if not re.search('PTT.*NexusPHP', self.driver.title):
             self.sign_result = False
@@ -49,6 +63,8 @@ class signClass(signBase):
             "module_name": self.module_name,
             "site_name": self.site_name,
             "site_url": self.indexUrl,
+            "access_result": self.access_result,
+            "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),
