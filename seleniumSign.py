@@ -18,6 +18,18 @@ def printList(sign_list: [], logger, is_detail: bool):
             if is_detail:
                 logger.info(f"{sign.indexUrl}: {sign.result['sign_result_info']}")
 
+def print_extra_info(sign_s_list: [], sign_f_list: []):
+    if not sign_s_list and not sign_f_list:
+        logger.info("空")
+        return
+    for sign in sign_s_list:
+        if sign.result['extra_info'] or sign.result['new_message']:
+            logger.info(f"{sign.indexUrl}; extra info: {sign.result['extra_info']}; new message: {sign.result['new_message']}")
+    for sign in sign_f_list:
+        if sign.result['extra_info'] or sign.result['new_message']:
+            logger.info(f"{sign.indexUrl}; extra info: {sign.result['extra_info']}; new message: {sign.result['new_message']}")
+
+
 def get_sign_queue(driver):
     # 获取目录下.py文件的文件名
     target_directory = 'target'
@@ -69,10 +81,12 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
         sign.exit()
 
     logger.info("签到成功列表：")
-    printList(succeedList, logger)
+    printList(succeedList, logger, False)
 
     logger.info("签到失败列表：")
     printList(failedList, logger, True)
+
+    print_extra_info(succeedList, failedList)
 
     return succeedList, failedList
 
