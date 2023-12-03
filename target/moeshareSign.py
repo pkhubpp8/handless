@@ -104,7 +104,7 @@ class signClass(signBase):
         reply_info = f"{datetime.datetime.now().strftime('%m月%d日 %H:%M:%S')}, 新的一天，灌点水，拿点活跃度"
         # todo
     def collect_info(self) -> dict:
-        current_date_time = datetime.now()
+        current_date_time = datetime.datetime.now()
         day = current_date_time.day
         if day == 28:
             self.extra_info = "今天可以换取道具了。"
