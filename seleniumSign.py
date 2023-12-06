@@ -29,11 +29,13 @@ def print_extra_info(sign_s_list: [], sign_f_list: []):
         logger.info("空")
         return
     for sign in sign_s_list:
-        if sign.result['extra_info'] or sign.result['new_message']:
-            logger.info(f"s. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
+        if sign.result:
+            if sign.result.get('extra_info') or sign.result.get('new_message'):
+                logger.info(f"s. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
     for sign in sign_f_list:
-        if sign.result['extra_info'] or sign.result['new_message']:
-            logger.info(f"f. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
+        if sign.result:
+            if sign.result.get('extra_info') or sign.result.get('new_message'):
+                logger.info(f"f. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
 
 
 def get_sign_queue(driver):
