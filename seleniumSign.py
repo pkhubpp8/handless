@@ -17,7 +17,10 @@ def printList(sign_list: [], logger, is_detail: bool):
         for sign in sign_list:
             if is_detail:
                 if sign.result:
-                    logger.info(f"{sign.indexUrl}: {sign.result.get('sign_result_info')}")
+                    if sign.result.get('access_result_info'):
+                        logger.info(f"{sign.indexUrl}: {sign.result.get('access_result_info')}")
+                    elif sign.result.get('sign_result_info'):
+                        logger.info(f"{sign.indexUrl}: {sign.result.get('sign_result_info')}")
                 else:
                     logger.info(f"{sign.indexUrl}: no result")
             else:
