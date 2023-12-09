@@ -27,7 +27,8 @@ class signClass(signBase):
             self.access_result = False
             self.access_result_info = f"标题异常：{self.driver.title}"
             return False
-        elements = self.element = self.driver.find_elements(By.CLASS_NAME, 'User_Name')
+        # medium left
+        elements = self.driver.find_elements(By.CLASS_NAME, 'User_Name') or self.driver.find_elements(By.CLASS_NAME, 'PowerUser_Name')
         for element in elements:
             if element.text:
                 self.access_result = True
