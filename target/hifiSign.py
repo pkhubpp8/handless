@@ -81,4 +81,3 @@ $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
-        self.driver = None

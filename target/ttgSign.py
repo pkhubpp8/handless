@@ -30,6 +30,17 @@ class signClass(signBase):
         self.access_result = False
         self.access_result_info = f"未登录"
         return False
+    def msgCheck(self) -> bool:
+        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "个重要短讯")
+        if len(elements) == 1:
+            self.new_message = elements[0].text.strip()
+            return True
+        elif len(elements) == 0:
+            return False
+        else:
+            self.new_message = "warning: " + elements[0].text.strip()
+            logger.warning(f"找到elements长度{len(elements)}异常")
+            return False
     def sign(self):
         elements = self.driver.find_elements(By.ID, "sp_signed")
         for element in elements:
@@ -85,4 +96,3 @@ class signClass(signBase):
     def exit(self):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
-        self.driver = None

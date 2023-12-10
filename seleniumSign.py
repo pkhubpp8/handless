@@ -91,14 +91,6 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
             failedList.append(sign)
         sign.exit()
 
-    logger.info("签到成功列表：")
-    printList(succeedList, logger, False)
-
-    logger.info("签到失败列表：")
-    printList(failedList, logger, True)
-
-    print_extra_info(succeedList, failedList)
-
     return succeedList, failedList
 
 
@@ -131,7 +123,29 @@ if __name__ == "__main__":
     '''
     if driver and logger:
         sign_queue = get_sign_queue(driver)
-        do_sign(sign_queue, logger, driver)
+        ss, fs = do_sign(sign_queue, logger, driver)
+
+        logger.info("签到成功列表：")
+        printList(ss, logger, False)
+
+        logger.info("签到失败列表：")
+        printList(fs, logger, True)
+
+        print_extra_info(ss, fs)
+
+        if fs:
+            logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
+            sign_queue = queue.Queue()
+            for f in fs:
+                sign_queue.put(f)
+            ss2, fs2 = do_sign(sign_queue, logger, driver)
+            logger.info("签到成功列表：")
+            printList(ss2, logger, False)
+
+            logger.info("签到失败列表：")
+            printList(fs2, logger, True)
+
+            print_extra_info(ss2, fs2)
         driver.quit()
     else:
         logger.error(f"webdriver 初始化失败")
