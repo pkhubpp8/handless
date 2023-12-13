@@ -125,9 +125,8 @@ if __name__ == "__main__":
         sign_queue = get_sign_queue(driver)
         ss, fs = do_sign(sign_queue, logger, driver)
 
-        logger.info("签到失败1 列表：")
-        printList(fs, logger, True)
-
+        ss2 = []
+        fs2 = []
         if fs:
             logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
             sign_queue = queue.Queue()
@@ -135,12 +134,12 @@ if __name__ == "__main__":
                 sign_queue.put(f)
             ss2, fs2 = do_sign(sign_queue, logger, driver)
 
-            logger.info("签到失败2 列表：")
-            printList(fs2, logger, True)
 
-        print_extra_info(ss, fs)
-        if ss2 or fs2:
-            print_extra_info(ss2, fs2)
+        logger.info(f"重新签到成功{len(fs) - len(fs2)}, {len(ss2)}")
+        logger.info("签到失败 列表：")
+        printList(fs2, logger, True)
+
+        print_extra_info(ss + ss2, fs2)
 
         driver.quit()
     else:
