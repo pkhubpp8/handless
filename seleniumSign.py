@@ -3,6 +3,7 @@ import sys
 from selenium.webdriver.common.by import By
 import queue
 import traceback
+import time
 # from selenium.webdriver.support.wait import WebDriverWait
 
 from init import firefox_profile
@@ -113,6 +114,14 @@ def get_web_driver_and_logger():
 
     return driver, logger
 
+def resign(fs, logger, driver):
+    logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
+    sign_queue = queue.Queue()
+    for f in fs:
+        sign_queue.put(f)
+    ss, fs = do_sign(sign_queue, logger, driver)
+    return ss, fs
+
 if __name__ == "__main__":
     driver, logger = get_web_driver_and_logger()
     '''
@@ -128,18 +137,21 @@ if __name__ == "__main__":
         ss2 = []
         fs2 = []
         if fs:
-            logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
-            sign_queue = queue.Queue()
-            for f in fs:
-                sign_queue.put(f)
-            ss2, fs2 = do_sign(sign_queue, logger, driver)
+            time.sleep(5)
+            ss2, fs2 = resign(fs, logger, driver)
+            logger.info(f"重新签到1, 成功{len(fs) - len(fs2)}, {len(ss2)}")
 
+        ss3 = []
+        fs3 = []
+        if fs2:
+            time.sleep(5)
+            ss3, fs3 = resign(fs2, logger, driver)
+            logger.info(f"重新签到2, 成功{len(fs2) - len(fs3)}, {len(ss3)}")
 
-        logger.info(f"重新签到成功{len(fs) - len(fs2)}, {len(ss2)}")
         logger.info("签到失败 列表：")
-        printList(fs2, logger, True)
+        printList(fs3, logger, True)
 
-        print_extra_info(ss + ss2, fs2)
+        print_extra_info(ss + ss2 + ss3, fs3)
 
         driver.quit()
     else:

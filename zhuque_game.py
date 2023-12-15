@@ -288,6 +288,9 @@ def checkIfAllCharactersNeedLvlUpAndDoLvlUp(characterList, game: GAME):
             if "status" in data and 'code' in data and data['status'] == 400 and data['code'] == 'INSUFFICIENT_BONUS':
                 logger.info("灵石不足，结束升级")
                 return isLvlUp
+            elif "status" in data and 'code' in data and data['status'] == 400 and data['code'] == 'LEVEL_IS_90':
+                logger.info("达到上限，换人")
+                continue
             elif data is None:
                 logger.info("未知异常，结束升级")
                 return False
