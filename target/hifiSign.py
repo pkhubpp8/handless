@@ -1,13 +1,16 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+
 import re
 import logging
 import time
+import random
 from ._BASE import signBase
 
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, driver, url = 'https://www.hifini.com/', module_name: str = 'hifiSign'):
+    def __init__(self, driver, url = 'https://www.hifini.com/sg_sign.htm', module_name: str = 'hifiSign'):
         self.indexUrl = url
         self.driver = driver
         self.module_name = module_name
@@ -16,6 +19,64 @@ class signClass(signBase):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
+    def _simulate_human(self):
+        # 定位要拖动的元素
+        draggable_elements = self.driver.find_elements(By.XPATH, '//div[@class="handler handler_bg"]')
+        if len(draggable_elements) != 1:
+            logger.info(f"寻找到了{len(draggable_elements)}个draggable元素")
+            return False
+
+        # 定位拖动的目标位置（假设这里是另一个元素）
+        target_elements = self.driver.find_elements(By.XPATH, '//div[@class="drag_text"]')
+        if len(target_elements) != 1:
+            logger.info(f"寻找到了{len(target_elements)}个target元素")
+            return False
+        else:
+            if target_elements[0].text == '拖动滑块验证':
+                logger.info('获取到了target元素')
+            else:
+                logger.info(f'没有获取到target元素: {target_elements[0].text}')
+                return False
+
+        x_offset = target_elements[0].size['width'] + random.randint(0, 5)
+        y_offset = 0 + random.randint(0, 5)
+
+        action_chains = ActionChains(self.driver)
+        action_chains.click_and_hold(draggable_elements[0]).perform()
+        time.sleep(0.1)  # 添加延迟模拟拖动速度
+        action_chains.move_by_offset(x_offset / 2, y_offset / 2).perform()
+        time.sleep(0.1)  # 添加延迟模拟拖动速度
+        action_chains.move_by_offset(x_offset, y_offset).perform()
+        time.sleep(0.1)  # 添加延迟模拟拖动速度
+        action_chains.release().perform()
+        time.sleep(5)
+        if not re.search('HiFiNi', self.driver.title):
+            return False
+        return True
+
+    def valid_access(self):
+        if not re.search('滑动验证', self.driver.title):
+            if self._simulate_human():
+                logger.info('continue')
+                self.access_result = True
+                self.access_result_info = f"人机验证成功"
+            else:
+                self.access_result = False
+                self.access_result_info = f"标题异常：{self.driver.title}，且人机验证失败"
+                return False
+        if not re.search('HiFiNi', self.driver.title):
+            self.access_result = False
+            self.access_result_info = f"标题异常：{self.driver.title}"
+            return False
+        elements = self.driver.find_elements(By.XPATH, '//li[@class="nav-item username"]')
+        for element in elements:
+            if element.text:
+                self.access_result = True
+                self.access_result_info = self.access_result_info
+                return True
+        self.access_result = False
+        self.access_result_info = f"未登录"
+        return False
     def sign(self):
         elements = self.driver.find_elements(By.ID, "sign")
         for element in elements:
