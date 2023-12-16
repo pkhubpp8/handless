@@ -26,7 +26,7 @@ class signClass(signBase):
             logger.info(f"寻找到了{len(draggable_elements)}个draggable元素")
             return False
 
-        # 定位拖动的目标位置（假设这里是另一个元素）
+        # 定位拖动的目标位置
         target_elements = self.driver.find_elements(By.XPATH, '//div[@class="drag_text"]')
         if len(target_elements) != 1:
             logger.info(f"寻找到了{len(target_elements)}个target元素")
@@ -37,18 +37,18 @@ class signClass(signBase):
             else:
                 logger.info(f'没有获取到target元素: {target_elements[0].text}')
                 return False
-
         x_offset = target_elements[0].size['width'] + random.randint(0, 5)
         y_offset = 0 + random.randint(0, 5)
 
+        # 开始拖动
         action_chains = ActionChains(self.driver)
-        action_chains.click_and_hold(draggable_elements[0]).perform()
-        time.sleep(0.1)  # 添加延迟模拟拖动速度
-        action_chains.move_by_offset(x_offset / 2, y_offset / 2).perform()
-        time.sleep(0.1)  # 添加延迟模拟拖动速度
-        action_chains.move_by_offset(x_offset, y_offset).perform()
-        time.sleep(0.1)  # 添加延迟模拟拖动速度
-        action_chains.release().perform()
+        action_chains.click_and_hold(draggable_elements[0]).perform()       # 起始
+        time.sleep(0.1 + round(random.uniform(-0.1, 0.1) / 0.01) * 0.01)    # 增加随机0.1 + [-0.1, 0.1]的延迟，模拟拖动速度
+        action_chains.move_by_offset(x_offset / 2, y_offset / 2).perform()  # 中点
+        time.sleep(0.1 + round(random.uniform(-0.1, 0.1) / 0.01) * 0.01)    # 增加随机0.1 + [-0.1, 0.1]的延迟，模拟拖动速度
+        action_chains.move_by_offset(x_offset, y_offset).perform()          # 结束
+        time.sleep(0.1 + round(random.uniform(-0.1, 0.1) / 0.01) * 0.01)    # 增加随机0.1 + [-0.1, 0.1]的延迟，模拟拖动速度
+        action_chains.release().perform()                                   # 释放
         time.sleep(5)
         if not re.search('HiFiNi', self.driver.title):
             return False
@@ -57,9 +57,9 @@ class signClass(signBase):
     def valid_access(self):
         if not re.search('滑动验证', self.driver.title):
             if self._simulate_human():
-                logger.info('continue')
                 self.access_result = True
                 self.access_result_info = f"人机验证成功"
+                logger.info('continue')
             else:
                 self.access_result = False
                 self.access_result_info = f"标题异常：{self.driver.title}，且人机验证失败"
@@ -72,7 +72,10 @@ class signClass(signBase):
         for element in elements:
             if element.text:
                 self.access_result = True
-                self.access_result_info = self.access_result_info
+                if self.access_result_info:
+                    self.access_result_info = self.access_result_info + ", 登录成功"
+                else:
+                    self.access_result_info = "登录成功"
                 return True
         self.access_result = False
         self.access_result_info = f"未登录"
