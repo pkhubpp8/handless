@@ -55,7 +55,7 @@ class signClass(signBase):
         return True
 
     def valid_access(self):
-        if not re.search('滑动验证', self.driver.title):
+        if re.search('滑动验证', self.driver.title):
             if self._simulate_human():
                 self.access_result = True
                 self.access_result_info = f"人机验证成功"
@@ -134,6 +134,8 @@ $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
             "module_name": self.module_name,
             "site_name": self.site_name,
             "site_url": self.indexUrl,
+            "access_result": self.access_result,
+            "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),
