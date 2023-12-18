@@ -1,9 +1,11 @@
 import os
 import sys
-from selenium.webdriver.common.by import By
 import queue
 import traceback
 import time
+import json
+import datetime
+from selenium.webdriver.common.by import By
 # from selenium.webdriver.support.wait import WebDriverWait
 
 from init import firefox_profile
@@ -27,19 +29,25 @@ def printList(sign_list: [], logger, is_detail: bool):
             else:
                 logger.info(f"{sign.indexUrl}")
 
-def print_extra_info(sign_s_list: [], sign_f_list: []):
+def record_extra_info(sign_s_list: [], sign_f_list: []):
     logger.info("start print extra info")
     if not sign_s_list and not sign_f_list:
         logger.info("空")
         return
+    result_data = []
     for sign in sign_s_list:
         if sign.result:
             if sign.result.get('extra_info') or sign.result.get('new_message'):
                 logger.info(f"s. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
+            result_data.append(sign.result)
     for sign in sign_f_list:
         if sign.result:
             if sign.result.get('extra_info') or sign.result.get('new_message'):
                 logger.info(f"f. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
+            result_data.append(sign.result)
+    with open("log/result_data.json", "w") as f:
+        # 将 JSON 对象列表写入文件
+        json.dump(result_data, f)
 
 
 def get_sign_queue(driver):
@@ -56,11 +64,30 @@ def get_sign_queue(driver):
 def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
     succeedList = []
     failedList = []
+    passList = []
+    with open("log/result_data.json", "r") as f:
+    # 将文件内容转换为 JSON 对象列表
+        data = json.load(f)
     while not sign_queue.empty():
         sign = sign_queue.get()
         logger.info(f"开始{sign.indexUrl}")
-
         try:
+            need_go_ahead = True
+            for last in data:
+                if sign.module_name != last['module_name']:
+                    continue
+                last_timestamp = last['date_and_time']
+                last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
+                current_datetime = datetime.datetime.now()
+                if last_sign_time.day == current_datetime.day:
+                    if last['sign_result'] == True:
+                        need_go_ahead = False
+                        break
+            if need_go_ahead == False:
+                logger.info(f"{sign.module_name}今天已经签到成功了，无需再次签到")
+                passList.append(sign)
+                continue
+
             if hasattr(sign, 'accessIndex') and callable(getattr(sign, 'accessIndex')):
                 sign.accessIndex()
             if hasattr(sign, 'valid_access') and callable(getattr(sign, 'valid_access')):
@@ -92,17 +119,17 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
             failedList.append(sign)
         sign.exit()
 
-    return succeedList, failedList
+    return [succeedList, failedList, passList]
 
 
-def get_web_driver_and_logger():
+def get_web_driver_and_logger() -> []:
     config_data = config_init.get_config_for_sign()
     log_path = config_data['log_path']
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 
     sign_log_path = os.path.join(log_path, 'sign')
-    logger = myLogger.myLogger('sign', sign_log_path, True).getLogger()
+    logger = myLogger.myLogger('sign', sign_log_path, False).getLogger()
 
     browser = config_data['browser']
     if browser == 'firefox':
@@ -112,15 +139,17 @@ def get_web_driver_and_logger():
         logger.error(f"当前不支持")
         sys.exit(-1)
 
-    return driver, logger
+    return [driver, logger]
 
-def resign(fs, logger, driver):
+def resign(fs, logger, driver) -> []:
     logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
     sign_queue = queue.Queue()
     for f in fs:
         sign_queue.put(f)
-    ss, fs = do_sign(sign_queue, logger, driver)
-    return ss, fs
+    ss, fs, ps = do_sign(sign_queue, logger, driver)
+    if len(ps) != 0:
+        logger.warning(f"异常len of pass site: {len(ps)}")
+    return [ss, fs]
 
 if __name__ == "__main__":
     driver, logger = get_web_driver_and_logger()
@@ -132,7 +161,10 @@ if __name__ == "__main__":
     '''
     if driver and logger:
         sign_queue = get_sign_queue(driver)
-        ss, fs = do_sign(sign_queue, logger, driver)
+
+        logger.info(f"有{sign_queue.qsize()}个站需要签到")
+        ss, fs, ps = do_sign(sign_queue, logger, driver)
+        logger.info(f"忽略签到{len(ps)}个站")
 
         ss2 = []
         fs2 = []
@@ -151,7 +183,7 @@ if __name__ == "__main__":
         logger.info("签到失败 列表：")
         printList(fs3, logger, True)
 
-        print_extra_info(ss + ss2 + ss3, fs3)
+        record_extra_info(ss + ss2 + ss3, fs3)
 
         driver.quit()
     else:

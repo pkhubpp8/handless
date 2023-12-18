@@ -33,7 +33,7 @@
 + 实现undetected_chromedriver. 但是由于cf升级，uc + chrome v117也无法过cf验证，暂停
 + 整合seleniumSign和zhuque_game
 + 日志整改
-+ 通过本地记录防止seleniumSign重复签到
++ ~~通过本地记录防止seleniumSign重复签到~~
 + ~~增加requirements.txt~~
 + 结果推送，考虑使用IYUUU或html页面展示
 + ~~增加配置文件，yaml或ini~~
