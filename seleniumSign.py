@@ -48,6 +48,7 @@ def record_extra_info(sign_s_list: [], sign_f_list: []):
     with open("log/result_data.json", "w") as f:
         # 将 JSON 对象列表写入文件
         json.dump(result_data, f)
+        logger.warning("bug: 新数据覆盖了旧数据，旧数据丢失")
 
 
 def get_sign_queue(driver):
