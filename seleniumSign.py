@@ -45,10 +45,6 @@ def record_extra_info(sign_s_list: [], sign_f_list: []):
             if sign.result.get('extra_info') or sign.result.get('new_message'):
                 logger.info(f"f. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
             result_data.append(sign.result)
-    with open("log/result_data.json", "w") as f:
-        # 将 JSON 对象列表写入文件
-        json.dump(result_data, f)
-        logger.warning("bug: 新数据覆盖了旧数据，旧数据丢失")
 
 
 def get_sign_queue(driver):
@@ -152,6 +148,28 @@ def resign(fs, logger, driver) -> []:
         logger.warning(f"异常len of pass site: {len(ps)}")
     return [ss, fs]
 
+def rewrite_result(sign_list: []):
+    with open("log/result_data.json", "r") as f:
+    # 将文件内容转换为 JSON 对象列表
+        data = json.load(f)
+
+        for i in range(len(data)):
+            last_timestamp = data[i]['date_and_time']
+            last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
+            current_datetime = datetime.datetime.now()
+            if last_sign_time.day != current_datetime.day:
+                data.pop()
+            if data[i]['sign_result'] == False:
+                data.pop()
+
+
+        for sign in sign_list:
+            data.append(sign.result)
+
+    with open("log/result_data.json", "w") as f:
+        # 将 JSON 对象列表写入文件
+        json.dump(data, f)
+
 if __name__ == "__main__":
     driver, logger = get_web_driver_and_logger()
     '''
@@ -186,6 +204,7 @@ if __name__ == "__main__":
 
         record_extra_info(ss + ss2 + ss3, fs3)
 
+        rewrite_result(ss + ss2 + ss3 + fs3)
         driver.quit()
     else:
         logger.error(f"webdriver 初始化失败")

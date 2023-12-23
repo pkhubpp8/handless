@@ -3,6 +3,7 @@ import re
 import logging
 import time
 import random
+import datetime
 from ._BASE import signBase
 
 logger = logging.getLogger('sign')
@@ -87,9 +88,20 @@ class signClass(signBase):
         if self.sign_is_clicked == True:
             self.sign_result = True
             self.sign_result_info = f"签到成功"
+            return True
         else:
-            self.sign_result = False
-            self.sign_result_info = f"未曾签到"
+            if datetime.datetime.now().hour > 8:
+                elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "签到领奖!")
+                if len(elements) == 0:
+                    self.sign_result = True
+                    self.sign_result_info = f"已经签到过了"
+                    return True
+                else:
+                    self.sign_result = False
+                    self.sign_result_info = f"还未签到"
+            else:
+                self.sign_result = False
+                self.sign_result_info = f"8点不到，无法签到"
         return False
     def collect_info(self) -> dict:
         self.result = {
