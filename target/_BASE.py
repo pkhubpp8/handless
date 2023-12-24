@@ -4,7 +4,7 @@ class signBase:
         self.access_result_info = ""
         self.sign_result = False
         self.sign_result_info = ""
-        self.need_resign = False
+        self.need_resign = True
         self.new_message = ""
         self.result = None
         self.extra_info = {}

@@ -139,7 +139,7 @@ $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),
-            "need_resign": False,
+            "need_resign": self.need_resign,
             "new_message": self.new_message,
             "extra_info": self.extra_info
         }

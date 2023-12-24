@@ -152,23 +152,24 @@ def rewrite_result(sign_list: []):
     with open("log/result_data.json", "r") as f:
     # 将文件内容转换为 JSON 对象列表
         data = json.load(f)
-
+        new_data = []
         for i in range(len(data)):
             last_timestamp = data[i]['date_and_time']
             last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
             current_datetime = datetime.datetime.now()
             if last_sign_time.day != current_datetime.day:
-                data.pop()
+                continue
             if data[i]['sign_result'] == False:
-                data.pop()
+                continue
+            new_data.append(data[i])
 
 
         for sign in sign_list:
-            data.append(sign.result)
+            new_data.append(sign.result)
 
     with open("log/result_data.json", "w") as f:
         # 将 JSON 对象列表写入文件
-        json.dump(data, f)
+        json.dump(new_data, f)
 
 if __name__ == "__main__":
     driver, logger = get_web_driver_and_logger()
