@@ -39,7 +39,10 @@ class signClass(signBase):
     def sign(self):
         elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "签到领奖!")
         if len(elements) == 0:
-            logger.warning(f"签到按钮获取失败{len(elements)}")
+            if datetime.datetime.now().hour <= 8:
+                return
+            else:
+                logger.warning(f"签到按钮获取失败{len(elements)}")
             return
         elif len(elements) > 1:
             logger.warning(f"签到按钮获取长度异常{len(elements)}")

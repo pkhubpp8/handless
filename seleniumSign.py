@@ -167,9 +167,10 @@ def rewrite_result(sign_list: []):
         for sign in sign_list:
             new_data.append(sign.result)
 
-    with open("log/result_data.json", "w") as f:
+    with open("log/result_data.json", "w", encoding='utf-8') as f:
         # 将 JSON 对象列表写入文件
-        json.dump(new_data, f)
+        json.dump(new_data, f, ensure_ascii=False, indent=4)
+
 
 if __name__ == "__main__":
     driver, logger = get_web_driver_and_logger()
