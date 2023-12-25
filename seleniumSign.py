@@ -62,7 +62,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
     succeedList = []
     failedList = []
     passList = []
-    with open("log/result_data.json", "r") as f:
+    with open("log/result_data.json", "r", encoding='utf-8') as f:
     # 将文件内容转换为 JSON 对象列表
         data = json.load(f)
     while not sign_queue.empty():
@@ -149,7 +149,7 @@ def resign(fs, logger, driver) -> []:
     return [ss, fs]
 
 def rewrite_result(sign_list: []):
-    with open("log/result_data.json", "r") as f:
+    with open("log/result_data.json", "r", encoding='utf-8') as f:
     # 将文件内容转换为 JSON 对象列表
         data = json.load(f)
         new_data = []
