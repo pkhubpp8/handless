@@ -71,7 +71,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
         try:
             need_go_ahead = True
             for last in data:
-                if sign.module_name != last['module_name']:
+                if last == None or sign.module_name != last['module_name']:
                     continue
                 last_timestamp = last['date_and_time']
                 last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
@@ -154,6 +154,8 @@ def rewrite_result(sign_list: []):
         data = json.load(f)
         new_data = []
         for i in range(len(data)):
+            if data[i] == None:
+                continue
             last_timestamp = data[i]['date_and_time']
             last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
             current_datetime = datetime.datetime.now()

@@ -19,7 +19,7 @@ class signClass(signBase):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
-        time.slee(5)
+        time.sleep(5)
     def _simulate_human(self):
         # 定位要拖动的元素
         draggable_elements = self.driver.find_elements(By.XPATH, '//div[@class="handler handler_bg"]')
