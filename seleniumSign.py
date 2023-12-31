@@ -194,14 +194,14 @@ if __name__ == "__main__":
         if fs:
             time.sleep(5)
             ss2, fs2 = resign(fs, logger, driver)
-            logger.info(f"重新签到1, 成功{len(fs) - len(fs2)}, {len(ss2)}")
+            logger.info(f"重新签到, 成功{len(fs) - len(fs2)}/{len(fs)}")
 
         ss3 = []
         fs3 = []
         if fs2:
             time.sleep(5)
             ss3, fs3 = resign(fs2, logger, driver)
-            logger.info(f"重新签到2, 成功{len(fs2) - len(fs3)}, {len(ss3)}")
+            logger.info(f"重新签到, 成功{len(fs2) - len(fs3)}/{len(fs2)}")
 
         logger.info("签到失败 列表：")
         printList(fs3, logger, True)
