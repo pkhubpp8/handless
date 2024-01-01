@@ -221,7 +221,7 @@ def doLvlUp(character: dict, ua: str, cookie: str, csrf: str):
         "id": character['id'],
         "resetModal": False
     }
-
+    # {"resetModal":false,"level":79}
     # 发送POST请求
     url = "https://zhuque.in/api/gaming/trainGenshinCharacter"
     response = requests.post(url, json=data, headers=commonHeaders)
