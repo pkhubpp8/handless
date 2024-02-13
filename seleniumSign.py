@@ -62,9 +62,12 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
     succeedList = []
     failedList = []
     passList = []
-    with open("log/result_data.json", "r", encoding='utf-8') as f:
-    # 将文件内容转换为 JSON 对象列表
-        data = json.load(f)
+    try:
+        with open("log/result_data.json", "r", encoding='utf-8') as f:
+        # 将文件内容转换为 JSON 对象列表
+            data = json.load(f)
+    except:
+        data = []
     while not sign_queue.empty():
         sign = sign_queue.get()
         logger.info(f"开始{sign.indexUrl}")
