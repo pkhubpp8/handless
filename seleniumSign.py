@@ -152,25 +152,28 @@ def resign(fs, logger, driver) -> []:
     return [ss, fs]
 
 def rewrite_result(sign_list: []):
-    with open("log/result_data.json", "r", encoding='utf-8') as f:
-    # 将文件内容转换为 JSON 对象列表
-        data = json.load(f)
-        new_data = []
-        for i in range(len(data)):
-            if data[i] == None:
-                continue
-            last_timestamp = data[i]['date_and_time']
-            last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
-            current_datetime = datetime.datetime.now()
-            if last_sign_time.day != current_datetime.day:
-                continue
-            if data[i]['sign_result'] == False:
-                continue
-            new_data.append(data[i])
+    new_data = []
+    try:
+        with open("log/result_data.json", "r", encoding='utf-8') as f:
+        # 将文件内容转换为 JSON 对象列表
+            data = json.load(f)
+            for i in range(len(data)):
+                if data[i] == None:
+                    continue
+                last_timestamp = data[i]['date_and_time']
+                last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
+                current_datetime = datetime.datetime.now()
+                if last_sign_time.day != current_datetime.day:
+                    continue
+                if data[i]['sign_result'] == False:
+                    continue
+                new_data.append(data[i])
+    except Exception as e:
+        logger.error(f"打开结果记录异常，可能是文件不存在：{e}")
+        logger.warning(traceback.format_exc())
 
-
-        for sign in sign_list:
-            new_data.append(sign.result)
+    for sign in sign_list:
+        new_data.append(sign.result)
 
     with open("log/result_data.json", "w", encoding='utf-8') as f:
         # 将 JSON 对象列表写入文件
