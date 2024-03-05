@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoAlertPresentException
 import re
 import logging
 import time
@@ -19,23 +20,55 @@ class signClass(signBase):
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
         time.sleep(3)
-    def sign(self):
-        # 没有显式签到方法
-        # 仅访问主页似乎没有增加魔力
-        pass
-    def validSign(self):
+        elements = self.driver.find_elements(By.CLASS_NAME, "ab-item")
+        for element in elements:
+            if element.text == '打卡签到':
+                element.click()
+    def valid_access(self):
         if not re.search('游戏怀旧灌水', self.driver.title):
-            self.sign_result = False
-            self.sign_result_info = f"标题异常：{self.driver.title}"
+            self.access_result = False
+            self.access_result_info = f"标题异常：{self.driver.title}"
             return False
-        self.sign_result = True
-        self.sign_result_info = f""
+        elements = self.driver.find_elements(By.CLASS_NAME, "ab-item")
+        for element in elements:
+            name = element.find_elements(By.CLASS_NAME, "display-name")
+            if name:
+                for n in name:
+                    if n.text:
+                        self.access_result = True
+                        self.access_result_info = f""
+                        return
         return True
+    def sign(self):
+        elements = self.driver.find_elements(By.CLASS_NAME, "mycred-points-link")
+        for element in elements:
+            if element.text == '每日魔晶盲盒[打卡]':
+                element.click()
+                return
+    def validSign(self):
+        try:
+            alert = self.driver.switch_to.alert
+            self.alert_text = alert.text
+            alert.accept()
+            self.driver.switch_to.default_content()
+        except NoAlertPresentException:
+            logger.info("没有弹出alert")
+            self.sign_result = True
+            self.sign_result_info = f"可能已经签到过了"
+            return True
+        if hasattr(self, 'alert_text') and self.alert_text is not None:
+            match = re.search('抽到魔晶 (\d+)，明日再来', self.alert_text)
+            if match:
+                self.sign_result = True
+                self.sign_result_info = f"获得魔晶{match.group(1)}"
+                return True
     def collect_info(self) -> dict:
         self.result = {
             "module_name": self.module_name,
             "site_name": self.site_name,
             "site_url": self.indexUrl,
+            "access_result": self.access_result,
+            "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),

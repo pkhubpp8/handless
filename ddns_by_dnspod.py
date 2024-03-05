@@ -71,6 +71,7 @@ if __name__ == "__main__":
     test_http_until_connection_ok()
 
     logger.info("Start DDNS by DNSPod")
+    ipHelper = getipv4.getIpv4(logger)
     while True:
         try:
             result = get_record_list(config_data)
@@ -79,11 +80,11 @@ if __name__ == "__main__":
             record_line_id = result['records'][0]['line_id']
 
             current_ip = (
-                getipv4.get_ipv4_icanhazip() or
-                getipv4.get_ipv4_ipify() or
-                getipv4.get_ipv4_wtfismyip() or
-                getipv4.get_ipv4_ipv4icanhazip() or
-                getipv4.get_ipv4_ip4onlyme()
+                ipHelper.get_ipv4_icanhazip() or
+                ipHelper.get_ipv4_ipify() or
+                ipHelper.get_ipv4_wtfismyip() or
+                ipHelper.get_ipv4_ipv4icanhazip() or
+                ipHelper.get_ipv4_ip4onlyme()
             )
             if not current_ip:
                 logger.warning("Can't get ipv4, sleep 1 min")
@@ -109,5 +110,5 @@ if __name__ == "__main__":
                 continue
         except Exception as e:
             logger.warning(f"Unknown error: {e}")
-            logger.warning(traceback.format_exc())
+            logger.debug(traceback.format_exc())
             time.sleep(60)
