@@ -20,3 +20,4 @@ trio==0.22.2
 trio-websocket==0.11.1
 urllib3==2.0.6
 wsproto==1.2.0
+paramiko==3.4.0

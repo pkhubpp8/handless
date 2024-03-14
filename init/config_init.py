@@ -58,3 +58,22 @@ def get_config_for_qbwebui() -> dict:
         "password": password
     }
     return result
+
+def get_config_for_router() -> dict:
+    config = configparser.ConfigParser()
+    if os.path.exists(local_config):
+        config.read(local_config)
+    else:
+        config.read(default_config)
+
+    hostname = config.get('ROUTER', 'hostname')
+    ssh_port = config.get('ROUTER', 'ssh_port')
+    username = config.get('ROUTER', 'username')
+    password = config.get('ROUTER', 'password')
+    result = {
+        "hostname": hostname,
+        "ssh_port": ssh_port,
+        "username": username,
+        "password": password
+    }
+    return result

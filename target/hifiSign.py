@@ -19,7 +19,7 @@ class signClass(signBase):
         self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
-        time.sleep(5)
+        time.sleep(10)
     def _simulate_human(self):
         # 定位要拖动的元素
         draggable_elements = self.driver.find_elements(By.XPATH, '//div[@class="handler handler_bg"]')
@@ -87,11 +87,11 @@ class signClass(signBase):
             if element.text == '签到':
                 # 去除delay跳转部分
                 sign_script = '''
-var postdata = sg_sign.serialize();
+var postdata = sg_sign_mobile.serialize();
 $.xpost(xn.url('sg_sign'), postdata, function(code, message) {
     $.alert(message);
 });
-                '''
+'''
                 self.driver.execute_script(sign_script)
                 time.sleep(2)
                 return

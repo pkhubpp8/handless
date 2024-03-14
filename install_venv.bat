@@ -10,7 +10,7 @@ rem 激活虚拟环境
 call %venv_name%\Scripts\activate
 
 rem 安装依赖项
-pip install -r requirements.txt
+pip install -r requirements.txt --upgrade
 
 pip freeze
 pause

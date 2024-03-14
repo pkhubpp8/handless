@@ -72,6 +72,12 @@ if __name__ == "__main__":
 
     logger.info("Start DDNS by DNSPod")
     ipHelper = getipv4.getIpv4(logger)
+    interfaces = [ipHelper.get_ipv4_icanhazip,
+                  ipHelper.get_ipv4_ipify,
+                  ipHelper.get_ipv4_wtfismyip,
+                  ipHelper.get_ipv4_ipv4icanhazip,
+                  ipHelper.get_ipv4_ip4onlyme]
+    MAX_RETRY = len(interfaces)
     while True:
         try:
             result = get_record_list(config_data)
@@ -79,13 +85,24 @@ if __name__ == "__main__":
             last_ip = result['records'][0]['value']
             record_line_id = result['records'][0]['line_id']
 
-            current_ip = (
-                ipHelper.get_ipv4_icanhazip() or
-                ipHelper.get_ipv4_ipify() or
-                ipHelper.get_ipv4_wtfismyip() or
-                ipHelper.get_ipv4_ipv4icanhazip() or
-                ipHelper.get_ipv4_ip4onlyme()
-            )
+            current_ip = None
+            retry_count = 0  # 初始化重试计数器
+            while interfaces and retry_count < MAX_RETRY:
+                interface = interfaces.pop(0)  # 取出列表中的第一个接口
+                try:
+                    current_ip = interface()
+                except Exception as e:
+                    logger.debug(f"Failed to fetch IP from {interface.__name__}: {e}")
+                    current_ip = None
+                if current_ip:
+                    interfaces.insert(0, interface)  # 如果接口调用成功，下次依然优先调用此接口
+                    break
+                else:
+                    interfaces.append(interface)  # 如果接口调用失败，则将其移到列表末尾，并继续调用
+                    retry_count += 1  # 增加重试计数器
+            else:
+                logger.warning("All interfaces failed to fetch IP address.")
+
             if not current_ip:
                 logger.warning("Can't get ipv4, sleep 1 min")
                 time.sleep(60)
