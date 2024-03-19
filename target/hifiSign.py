@@ -86,10 +86,16 @@ class signClass(signBase):
         for element in elements:
             if element.text == '签到':
                 # 去除delay跳转部分
+                # todo, 最好自动从网页上获取
                 sign_script = '''
-var postdata = sg_sign_mobile.serialize();
-$.xpost(xn.url('sg_sign'), postdata, function(code, message) {
-    $.alert(message);
+var sign = "5b925ff8222286f3721ec58ef552404a8f2e680ce1c0b9eb1ebb0e3ecb422a8a";
+var dynamicKey = generateDynamicKey();
+var encryptedSign = simpleEncrypt(sign, dynamicKey);
+
+$.xpost(xn.url('sg_sign'), {
+'sign': encryptedSign
+}, function(code, message) {
+$.alert(message);
 });
 '''
                 self.driver.execute_script(sign_script)
