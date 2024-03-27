@@ -82,23 +82,30 @@ class signClass(signBase):
         self.access_result_info = f"未登录"
         return False
     def sign(self):
+        sign_special_value = None
+        script_elements = self.driver.find_elements(By.TAG_NAME, "script")
+        for script_element in script_elements:
+            match = re.search('var sign = "(\w+)";', script_element.get_attribute("outerHTML"))
+            if match:
+                sign_special_value = match.group(1)
+                logger.info(f'sign_special_value = {sign_special_value}')
+                break
         elements = self.driver.find_elements(By.ID, "sign")
         for element in elements:
             if element.text == '签到':
                 # 去除delay跳转部分
                 # todo, 最好自动从网页上获取
                 sign_script = '''
-var sign = "5b925ff8222286f3721ec58ef552404a8f2e680ce1c0b9eb1ebb0e3ecb422a8a";
-var dynamicKey = generateDynamicKey();
-var encryptedSign = simpleEncrypt(sign, dynamicKey);
-
-$.xpost(xn.url('sg_sign'), {
-'sign': encryptedSign
-}, function(code, message) {
-$.alert(message);
-});
+var sign = "{special_value}";
+$.xpost(xn.url('sg_sign'), {{'sign':  sign}}, function(code, message) {{
+    $.alert(message);
+}});
 '''
-                self.driver.execute_script(sign_script)
+                if sign_special_value:
+                    formatted_script = sign_script.format(special_value=sign_special_value)
+                    self.driver.execute_script(formatted_script)
+                else:
+                    logger.warning(f'格式化失败，不执行脚本')
                 time.sleep(2)
                 return
     def validSign(self):

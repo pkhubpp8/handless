@@ -13,7 +13,7 @@ from init import myLogger
 from init import config_init
 from helper import moduleImport
 
-def printList(sign_list: [], logger, is_detail: bool):
+def printList(sign_list: list, logger, is_detail: bool):
     if not sign_list:
         logger.info("空")
     else:
@@ -29,23 +29,17 @@ def printList(sign_list: [], logger, is_detail: bool):
             else:
                 logger.info(f"{sign.indexUrl}")
 
-def record_extra_info(sign_s_list: [], sign_f_list: []):
+def record_extra_info(sign_list: list):
     logger.info("start print extra info")
-    if not sign_s_list and not sign_f_list:
+    if not sign_list:
         logger.info("空")
         return
     result_data = []
-    for sign in sign_s_list:
+    for sign in sign_list:
         if sign.result:
             if sign.result.get('extra_info') or sign.result.get('new_message'):
-                logger.info(f"s. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
+                logger.info(f"{sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
             result_data.append(sign.result)
-    for sign in sign_f_list:
-        if sign.result:
-            if sign.result.get('extra_info') or sign.result.get('new_message'):
-                logger.info(f"f. {sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
-            result_data.append(sign.result)
-
 
 def get_sign_queue(driver):
     # 获取目录下.py文件的文件名
@@ -58,7 +52,7 @@ def get_sign_queue(driver):
         sign_queue = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
     return sign_queue
 
-def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
+def do_sign(sign_queue: queue.Queue, logger, driver) -> list:
     succeedList = []
     failedList = []
     passList = []
@@ -82,7 +76,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
                 if last_sign_time.day == current_datetime.day:
                     if last['sign_result'] == True:
                         need_go_ahead = False
-                        break
+                break
             if need_go_ahead == False:
                 logger.info(f"{sign.module_name}今天已经签到成功了，无需再次签到")
                 passList.append(sign)
@@ -121,8 +115,7 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> []:
 
     return [succeedList, failedList, passList]
 
-
-def get_web_driver_and_logger() -> []:
+def get_web_driver_and_logger() -> list:
     config_data = config_init.get_config_for_sign()
     log_path = config_data['log_path']
     if not os.path.exists(log_path):
@@ -141,7 +134,7 @@ def get_web_driver_and_logger() -> []:
 
     return [driver, logger]
 
-def resign(fs, logger, driver) -> []:
+def resign(fs, logger, driver) -> list:
     logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
     sign_queue = queue.Queue()
     for f in fs:
@@ -151,7 +144,7 @@ def resign(fs, logger, driver) -> []:
         logger.warning(f"异常len of pass site: {len(ps)}")
     return [ss, fs]
 
-def rewrite_result(sign_list: []):
+def rewrite_result(sign_list: list):
     new_data = []
     try:
         with open("log/result_data.json", "r", encoding='utf-8') as f:
@@ -179,6 +172,23 @@ def rewrite_result(sign_list: []):
         # 将 JSON 对象列表写入文件
         json.dump(new_data, f, ensure_ascii=False, indent=4)
 
+def not_retry(sign):
+    if sign.result:
+        if sign.result.get('access_result_info'):
+            if "标题异常" in sign.result.get('access_result_info'):
+                logger.info(f"{sign.module_name} access 标题异常, not_retry")
+                return True
+        if sign.result.get('sign_result_info'):
+            if "标题异常" in sign.result.get('sign_result_info'):
+                logger.info(f"{sign.module_name} sign 标题异常, not_retry")
+                return True
+            elif "8点不到，无法签到" in sign.result.get('sign_result_info'):
+                logger.info(f"{sign.module_name} 8点不到, not_retry")
+                return True
+            elif "未签到。活跃度不够" in sign.result.get('sign_result_info'):
+                logger.info(f"{sign.module_name} 活跃度不够, not_retry")
+                return True
+    return False
 
 if __name__ == "__main__":
     driver, logger = get_web_driver_and_logger()
@@ -195,6 +205,16 @@ if __name__ == "__main__":
         ss, fs, ps = do_sign(sign_queue, logger, driver)
         logger.info(f"忽略签到{len(ps)}个站")
 
+        real_failed_list = []
+        temp_pass = []
+        for item in fs:
+            if not_retry(item) == True:
+                temp_pass.append(item)
+            else:
+                real_failed_list.append(item)
+        fs = real_failed_list
+        ps = ps + temp_pass
+
         ss2 = []
         fs2 = []
         if fs:
@@ -209,10 +229,13 @@ if __name__ == "__main__":
             ss3, fs3 = resign(fs2, logger, driver)
             logger.info(f"重新签到, 成功{len(fs2) - len(fs3)}/{len(fs2)}")
 
-        logger.info("签到失败 列表：")
+        logger.info("不重试签到 列表：")
+        printList(temp_pass, logger, True)
+
+        logger.info("重试依然签到失败 列表：")
         printList(fs3, logger, True)
 
-        record_extra_info(ss + ss2 + ss3, fs3)
+        record_extra_info(ss + ss2 + ss3 + fs3)
 
         rewrite_result(ss + ss2 + ss3 + fs3)
         driver.quit()
