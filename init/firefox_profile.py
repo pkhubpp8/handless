@@ -3,6 +3,12 @@ import re
 import os
 import sys
 
+logger = logging.getLogger("default")
+
+def setLogger(logger_):
+    global logger
+    logger = logger_
+
 def checkEnv():
     exe = "geckodriver.exe"
     # 获取系统的环境变量PATH，并将其拆分成一个列表
@@ -13,9 +19,9 @@ def checkEnv():
     for folder in path_list:
         exe_path = os.path.join(folder, exe)
         if os.path.isfile(exe_path):
-            logging.info(f"{exe}路径为{exe_path}")
+            logger.info(f"{exe}路径为{exe_path}")
             return exe_path
-    logging.info(f"未找到 {exe}")
+    logger.info(f"未找到 {exe}")
     return None
 
 
@@ -40,7 +46,7 @@ def getDefaultProfilePath():
     appdata_path = os.path.expandvars('%AppData%')
     file_path = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles') # \xhvtyp4t.default-release-1583421326042')
     if os.path.exists(file_path):
-        logging.info(f'路径 {file_path} 存在')
+        logger.info(f'路径 {file_path} 存在')
         subdirectories = [d for d in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, d))]
         if len(subdirectories) == 1:
             profile_dir = os.path.join(appdata_path, r'Mozilla\Firefox\Profiles', subdirectories[0])
@@ -97,11 +103,11 @@ def create_firefox_with_user_profile(webdriver_log_path: str):
         if profile_dir:
             ffOptions.add_argument(profile_dir)
         else:
-            logging.error(f"无法获取profile")
+            logger.error(f"无法获取profile")
             sys.exit(-1)
     from selenium import webdriver
     service = webdriver.firefox.service.Service(log_path = webdriver_log_path)
     driver = webdriver.Firefox(options = ffOptions, service = service)
     driver.maximize_window()
-    logging.info(driver.execute_script("return navigator.userAgent"))
+    logger.info(driver.execute_script("return navigator.userAgent"))
     return driver

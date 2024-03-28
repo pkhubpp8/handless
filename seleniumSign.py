@@ -123,6 +123,8 @@ def get_web_driver_and_logger() -> list:
 
     sign_log_path = os.path.join(log_path, 'sign')
     logger = myLogger.myLogger('sign', sign_log_path, False).getLogger()
+    firefox_profile.setLogger(logger)
+    moduleImport.setLogger(logger)
 
     browser = config_data['browser']
     if browser == 'firefox':

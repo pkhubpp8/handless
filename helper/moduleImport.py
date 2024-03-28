@@ -5,6 +5,12 @@ import importlib
 import queue
 
 
+logger = logging.getLogger("default")
+
+def setLogger(logger_):
+    global logger
+    logger = logger_
+
 logger = logging.getLogger('sign')
 def load_target_json(dir, json_file):
     try:
