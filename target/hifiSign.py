@@ -85,7 +85,7 @@ class signClass(signBase):
         sign_special_value = None
         script_elements = self.driver.find_elements(By.TAG_NAME, "script")
         for script_element in script_elements:
-            match = re.search('var sign = "(\w+)";', script_element.get_attribute("outerHTML"))
+            match = re.search(r'var sign = "(\w+)";', script_element.get_attribute("outerHTML"))
             if match:
                 sign_special_value = match.group(1)
                 logger.info(f'sign_special_value = {sign_special_value}')
@@ -118,7 +118,7 @@ $.xpost(xn.url('sg_sign'), {{'sign':  sign}}, function(code, message) {{
             # 成功签到！今日排名1234，总奖励(\d+)金币！
             # 成功签到！今日排名1234，连续签到超过\d+天额外奖励\d+金币，总奖励(\d+)金币！
             # 成功签到！今日排名1234，连续签到3天额外奖励\d+金币，总奖励(\d+)金币！
-            match = re.search('成功签到！今日排名(\d+).*总奖励(\d+)金币！', element.text)
+            match = re.search(r'成功签到！今日排名(\d+).*总奖励(\d+)金币！', element.text)
             if match:
                 self.sign_result = True
                 self.sign_result_info = f"第{match.group(1)}名签到. 奖励金币:{match.group(2)}"

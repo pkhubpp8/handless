@@ -19,7 +19,7 @@ class signClass(signBase):
     def msgCheck(self) -> bool:
         elements = self.driver.find_elements(By.ID, "nav-usernotice")
         if len(elements) == 1:
-            match = re.search('消息\s*(\d)', elements[0].text)
+            match = re.search(r'消息\s*(\d)', elements[0].text)
             if match:
                 self.new_message = f"消息 {match.group(1)}"
                 return True
@@ -43,7 +43,7 @@ class signClass(signBase):
         elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
         for element in elements:
             logger.debug(f"oldman sign1 result: {element.text}")
-            match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
+            match = re.search(r'签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
             if match:
                 self.sign_result = True
                 self.sign_result_info = f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}"
@@ -53,7 +53,7 @@ class signClass(signBase):
         elements = self.driver.find_elements(By.CLASS_NAME, "modal-body")
         for element in elements:
             logger.debug(f"oldman sign2 result: {element.text}")
-            match = re.search('签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
+            match = re.search(r'签到成功！您是第(\d+)名签到！(.*|\n|\r\n)\[连签奖励\](.*|\n|\r\n)经验:(\d+)、蘑菇:(\d+)、鲜花:(\d+)', element.text)
             if match:
                 self.sign_result = True
                 self.sign_result_info = f"第{match.group(1)}名签到. 经验:{match.group(4)}、蘑菇:{match.group(5)}、鲜花:{match.group(6)}"

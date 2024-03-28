@@ -50,7 +50,7 @@ class signClass(signBase):
             self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
         if hasattr(self, 'alert_text') and self.alert_text is not None:
-            match = re.search('已连续签到(\d+)天，此次签到您获得了(\d+)魔力值奖励!', self.alert_text)
+            match = re.search(r'已连续签到(\d+)天，此次签到您获得了(\d+)魔力值奖励!', self.alert_text)
             if match:
                 self.sign_result = True
                 self.sign_result_info = f"连续签到{match.group(1)}，获得魔力{match.group(2)}"

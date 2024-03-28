@@ -42,7 +42,7 @@ class signClass(signBase):
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.card_old.fr")
         if len(elements) > 0:
             for element in elements:
-                match = re.search('连续(\d+)天打卡', element.text)
+                match = re.search(r'连续(\d+)天打卡', element.text)
                 if match:
                     logger.info('已打卡，无需打卡')
                     return
@@ -52,7 +52,7 @@ class signClass(signBase):
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
         for element in elements:
             logger.warning(f"this is only for test: {element.text}")
-            match = re.search('每日打卡|\d+天未打卡', element.text)
+            match = re.search(r'每日打卡|\d+天未打卡', element.text)
             if match:
                 element.click()
                 time.sleep(1)
@@ -71,18 +71,18 @@ class signClass(signBase):
         # 断签？                2天未打卡
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.card_old.fr")
         for element in elements:
-            match = re.search('连续(\d+)天打卡', element.text)
+            match = re.search(r'连续(\d+)天打卡', element.text)
             if match:
                 self.sign_result = True
                 self.sign_result_info = f"已经签到过了。连续{match.group(1)}天打卡"
                 return True
-            if re.search('每日打卡|\d+天未打卡', element.text):
+            if re.search(r'每日打卡|\d+天未打卡', element.text):
                 self.sign_result = False
                 self.sign_result_info = f"未曾打卡1"
                 return False
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div.card.fr")
         for element in elements:
-            if re.search('每日打卡|\d+天未打卡', element.text):
+            if re.search(r'每日打卡|\d+天未打卡', element.text):
                 self.sign_result = False
                 self.sign_result_info = f"未曾打卡2"
                 return False

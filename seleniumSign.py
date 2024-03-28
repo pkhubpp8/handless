@@ -164,9 +164,11 @@ def rewrite_result(sign_list: list):
                     continue
                 new_data.append(data[i])
     except Exception as e:
-        logger.error(f"打开结果记录异常，可能是文件不存在：{e}")
+        logger.warning(f"打开结果记录异常：{e}")
+        logger.warning(f"错误堆栈信息：")
         logger.warning(traceback.format_exc())
 
+    logger.info(f"尝试写入打卡数据")
     for sign in sign_list:
         new_data.append(sign.result)
 

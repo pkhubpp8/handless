@@ -41,7 +41,7 @@ class signClass(signBase):
     def msgCheck(self) -> bool:
         elements = self.driver.find_elements(By.ID, "message_remind")
         if len(elements) == 1:
-            match = re.search('(.*新消息)\n.*', elements[0].text)
+            match = re.search(r'(.*新消息)\n.*', elements[0].text)
             if match:
                 self.new_message = match.group(1).strip()
             else:
@@ -58,7 +58,7 @@ class signClass(signBase):
         elements = self.driver.find_elements(By.CLASS_NAME, "mb5")
         self.liveness = 0
         for element in elements:
-            match = re.search('活跃度：(\d+)', element.text)
+            match = re.search(r'活跃度：(\d+)', element.text)
             if match:
                 self.liveness = int(match.group(1))
                 break

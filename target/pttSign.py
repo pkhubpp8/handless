@@ -55,7 +55,7 @@ class signClass(signBase):
             return False
         elements = self.driver.find_elements(By.CLASS_NAME, "embedded")
         for element in elements:
-            match = re.search('这是[你您]的第\s+(\d+)\s+次签到.*已连续签到\s+(\d+)\s+天.*本次签到获得\s+(\d+)\s+个魔力值', element.text)
+            match = re.search(r'这是[你您]的第\s+(\d+)\s+次签到.*已连续签到\s+(\d+)\s+天.*本次签到获得\s+(\d+)\s+个魔力值', element.text)
             if match:
                 self.sign_result = True
                 self.sign_result_info = f"第{match.group(1)}次签到，连续签到{match.group(2)}，获得魔力{match.group(3)}"
