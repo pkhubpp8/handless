@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from init import firefox_profile
 from init import myLogger
 from init import config_init
-from helper import moduleImport
+from helper import module_importer
 
 def printList(sign_list: list, logger, is_detail: bool):
     if not sign_list:
@@ -44,12 +44,12 @@ def record_extra_info(sign_list: list):
 def get_sign_queue(driver):
     # 获取目录下.py文件的文件名
     target_directory = 'target'
-    data = moduleImport.load_target_json(target_directory, 'sign_site.json')
+    data = module_importer.load_target_json(target_directory, 'sign_site.json')
     if 'all' in data and data['all'] != True and "module_list" in data:
-        sign_queue = moduleImport.import_modules(all = False, dir = target_directory, sites = data['module_list'], driver = driver)
+        sign_queue = module_importer.import_modules(all = False, dir = target_directory, sites = data['module_list'], driver = driver)
     else:
         logger.info("import所有模块")
-        sign_queue = moduleImport.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
+        sign_queue = module_importer.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
     return sign_queue
 
 def do_sign(sign_queue: queue.Queue, logger, driver) -> list:
@@ -124,7 +124,7 @@ def get_web_driver_and_logger() -> list:
     sign_log_path = os.path.join(log_path, 'sign')
     logger = myLogger.myLogger('sign', sign_log_path, False).getLogger()
     firefox_profile.setLogger(logger)
-    moduleImport.setLogger(logger)
+    module_importer.setLogger(logger)
 
     browser = config_data['browser']
     if browser == 'firefox':
