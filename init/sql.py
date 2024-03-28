@@ -1,8 +1,12 @@
 import sqlite3
 import os
+import logging
 
+logger = logging.getLogger('default')
 
-
+def setLogger(logger_):
+    global logger
+    logger = logger_
 
 class Sql:
     def __init__(self, profile_file_path = ""):
@@ -22,9 +26,9 @@ class Sql:
             if profile_folders:
                 first_profile_folder = profile_folders[0]
                 firefox_profile_path = os.path.join(firefox_profile_folder, first_profile_folder)
-                print(f"Firefox配置文件路径: {firefox_profile_path}")
+                logger.info(f"Firefox配置文件路径: {firefox_profile_path}")
             else:
-                print("找不到Firefox配置文件路径")
+                logger.info("找不到Firefox配置文件路径")
 
         cookie_db_path = os.path.join(firefox_profile_path, 'cookies.sqlite')
         self.conn = sqlite3.connect(cookie_db_path)

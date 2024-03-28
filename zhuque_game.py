@@ -48,6 +48,7 @@ if not os.path.exists(logPath):
 game_log_path = logPath + 'game'
 geckodriver_log_path = logPath + 'geckodriver.log'
 logger = myLogger.myLogger('game', game_log_path).getLogger()
+sql.setLogger(logger)
 
 def initGame(game: GAME):
     if not game:
