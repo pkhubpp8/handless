@@ -100,9 +100,9 @@ def do_sign(sign_queue: queue.Queue, logger, driver) -> list:
                     succeedList.append(sign)
                 else:
                     failedList.append(sign)
-                    driver.save_screenshot('log/' + sign.module_name + '_snapshot.png')
-                    with open('log/' + sign.module_name + '_page.html', 'w', encoding='utf-8') as file:
-                        file.write(driver.page_source)
+                    # driver.save_screenshot('log/' + sign.module_name + '_snapshot.png')
+                    # with open('log/' + sign.module_name + '_page.html', 'w', encoding='utf-8') as file:
+                    #     file.write(driver.page_source)
             else:
                 failedList.append(sign)
             if hasattr(sign, 'collect_info') and callable(getattr(sign, 'collect_info')):
