@@ -52,8 +52,7 @@ class signClass(signBase):
                 self.sign_result = True
                 self.sign_result_info = f"第{match.group(1)}次签到，连续签到{match.group(2)}，获得魔力{match.group(3)}"
                 return True
-
-        elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
+        elements = self.driver.find_elements(By.CSS_SELECTOR, 'a[class=""]')
         for element in elements:
             if element.text == '[签到得魔力]':
                 self.sign_result = False
