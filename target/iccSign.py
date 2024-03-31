@@ -31,12 +31,13 @@ class signClass(signBase):
         if not re.search('ICC.*NexusPHP', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}。尝试切换备用页")
             self.driver.get("https://fangwen2.icc2022.top/index.php")
-        if not re.search('ICC.*NexusPHP', self.driver.title):
-            self.sign_result = False
-            self.sign_result_info = f"标题依然异常：{self.driver.title}"
-        elements = self.driver.find_elements(By.CLASS_NAME, 'my_tag')
+            if not re.search('ICC.*NexusPHP', self.driver.title):
+                self.sign_result = False
+                self.sign_result_info = f"标题异常2：{self.driver.title}"
+                return
+        elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
         for element in elements:
-            if element.text == '点击签到':
+            if element.text == '[签到得魔力]':
                 element.click()
                 break
     def validSign(self):
@@ -51,9 +52,10 @@ class signClass(signBase):
                 self.sign_result = True
                 self.sign_result_info = f"第{match.group(1)}次签到，连续签到{match.group(2)}，获得魔力{match.group(3)}"
                 return True
-        elements = self.driver.find_elements(By.CLASS_NAME, 'my_tag')
+
+        elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
         for element in elements:
-            if element.text == '点击签到':
+            if element.text == '[签到得魔力]':
                 self.sign_result = False
                 self.sign_result_info = "还未签到。"
                 return False

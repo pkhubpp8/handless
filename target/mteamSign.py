@@ -24,6 +24,8 @@ class signClass(signBase):
             self.sign_result = False
             self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
+        # todo: verify login status
+        pass
         self.sign_result = True
         self.sign_result_info = f""
         return True
