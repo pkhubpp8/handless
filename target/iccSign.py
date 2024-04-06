@@ -17,16 +17,22 @@ class signClass(signBase):
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
     def msgCheck(self) -> bool:
-        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
-        if len(elements) == 1:
-            self.new_message = elements[0].text.strip()
+        new_msg_elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
+        if len(new_msg_elements) == 1:
+            self.new_message = new_msg_elements[0].text.strip()
             return True
-        elif len(elements) == 0:
+        new_important_elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条未读的重要消息")
+        if len(new_important_elements) == 1:
+            self.new_message = new_important_elements[0].text.strip()
+            return True
+
+        if len(new_msg_elements) == 0 and len(new_important_elements) == 0:
             return False
         else:
-            self.new_message = "warning: " + elements[0].text.strip()
-            logger.warning(f"找到elements长度{len(elements)}异常")
-            return False
+            self.new_message = "warning: new msg size: " + str(len(new_msg_elements))
+            self.new_message = self.new_message + ", new important msg size: " + str(len(new_important_elements))
+            logger.warning(f"找到elements长度{len(new_msg_elements)}, {len(new_important_elements)}异常")
+            return True
     def sign(self):
         if not re.search('ICC.*NexusPHP', self.driver.title):
             logger.info(f"标题异常：{self.driver.title}。尝试切换备用页")

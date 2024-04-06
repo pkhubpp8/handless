@@ -17,6 +17,11 @@ class signClass(signBase):
         self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
         time.sleep(6)
+    def valid_access(self):
+        return True
+        self.access_result = False
+        self.access_result_info = f"未登录"
+        return False
     def sign(self):
         pass
     def validSign(self):

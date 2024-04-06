@@ -28,7 +28,7 @@ class signClass(signBase):
         else:
             self.new_message = "warning: " + elements[0].text.strip()
             logger.warning(f"找到elements长度{len(elements)}异常")
-            return False
+            return True
     def sign(self):
         elements = self.driver.find_elements(By.ID, "sign_title")
         for element in elements:

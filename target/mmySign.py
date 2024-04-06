@@ -9,7 +9,7 @@ from ._BASE import signBase
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, driver, url: str = 'https://www.mmybt.com/', module_name: str = 'mmySign'):
+    def __init__(self, driver, url: str = 'https://www.mmybt.com/forum-45-1.html', module_name: str = 'mmySign'):
         self.indexUrl = url
         self.driver = driver
         self.module_name = module_name
