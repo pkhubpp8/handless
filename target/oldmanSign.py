@@ -34,6 +34,7 @@ class signClass(signBase):
         for element in elements:
             if element.text == '签到':
                 element.click()
+                time.sleep(3)
                 return
     def validSign(self):
         if not re.search('老男人游戏网配套论坛', self.driver.title):
