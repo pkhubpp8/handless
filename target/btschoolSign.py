@@ -35,6 +35,11 @@ class signClass(signBase):
                 break
     def validSign(self):
         # 'BTSCHOOL :: 首页 比特校园PT小乐园 - Powered by NexusPHP'
+        # https://pt.btschool.club/index.php?action=addbonus
+        if re.search('(请稍后|Just a moment)...', self.driver.title):
+            logger.info(f"标题异常：{self.driver.title}，尝试直接签到")
+            self.driver.get(self.indexUrl + "?action=addbonus")
+            time.sleep(5)
         if not re.search('BTSCHOOL.*NexusPHP', self.driver.title):
             self.sign_result = False
             self.sign_result_info = f"标题异常：{self.driver.title}"
