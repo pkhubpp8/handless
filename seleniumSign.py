@@ -179,18 +179,26 @@ def rewrite_result(sign_list: list):
 def not_retry(sign):
     if sign.result:
         if sign.result.get('access_result_info'):
+            if "未登录" in sign.result.get('access_result_info'):
+                logger.info(f"{sign.module_name} access 未登录, not retry")
+                return True
             if "标题异常" in sign.result.get('access_result_info'):
-                logger.info(f"{sign.module_name} access 标题异常, not_retry")
+                if "502" in sign.result.get('access_result_info') or "504" in sign.result.get('access_result_info'):
+                    return False
+                # 之后改成"502: Bad gateway", "504: Gateway time-out" 可以 retry
+                logger.info(f"{sign.module_name} access 标题异常, not retry")
                 return True
         if sign.result.get('sign_result_info'):
             if "标题异常" in sign.result.get('sign_result_info'):
-                logger.info(f"{sign.module_name} sign 标题异常, not_retry")
+                if "502" in sign.result.get('sign_result_info') or "504" in sign.result.get('sign_result_info'):
+                    return False
+                logger.info(f"{sign.module_name} sign 标题异常, not retry")
                 return True
             elif "8点不到，无法签到" in sign.result.get('sign_result_info'):
-                logger.info(f"{sign.module_name} 8点不到, not_retry")
+                logger.info(f"{sign.module_name} 8点不到, not retry")
                 return True
             elif "未签到。活跃度不够" in sign.result.get('sign_result_info'):
-                logger.info(f"{sign.module_name} 活跃度不够, not_retry")
+                logger.info(f"{sign.module_name} 活跃度不够, not retry")
                 return True
     return False
 
