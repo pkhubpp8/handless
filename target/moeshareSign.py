@@ -106,7 +106,7 @@ class signClass(signBase):
     def collect_info(self) -> dict:
         current_date_time = datetime.datetime.now()
         day = current_date_time.day
-        if day == 28:
+        if day >= 28:
             self.extra_info = "今天可以换取道具了。"
         self.result = {
             "module_name": self.module_name,
