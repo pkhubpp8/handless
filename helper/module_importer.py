@@ -40,19 +40,25 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
     else:
         unique_sign_sites = []
         seen_module_names = set()
-        for site in sites:
-            if "module_name" in site:
-                module_name = site["module_name"]
-                if module_name not in seen_module_names:
-                    seen_module_names.add(module_name)
-                    unique_sign_sites.append(site)
+        if isinstance(sites, str):
+            logger.info(f'指定运行{sites}')
+            module = importlib.import_module(f'{dir}.{sites}')
+            sign_queue.put(module.signClass(driver))
+            logger.info(f'导入{sites}成功')
+        else:
+            for site in sites:
+                if "module_name" in site:
+                    module_name = site["module_name"]
+                    if module_name not in seen_module_names:
+                        seen_module_names.add(module_name)
+                        unique_sign_sites.append(site)
+                    else:
+                        logger.info(f"重复的module: {module_name}, 忽略")
+            for site in unique_sign_sites:
+                module = importlib.import_module(f'{dir}.{site["module_name"]}')
+                if site["url"]:
+                    sign_queue.put(module.signClass(driver, site["url"]))
                 else:
-                    logger.info(f"重复的module: {module_name}, 忽略")
-        for site in unique_sign_sites:
-            module = importlib.import_module(f'{dir}.{site["module_name"]}')
-            if site["url"]:
-                sign_queue.put(module.signClass(driver, site["url"]))
-            else:
-                sign_queue.put(module.signClass(driver))
-            logger.info(f'导入{site["module_name"]}成功')
+                    sign_queue.put(module.signClass(driver))
+                logger.info(f'导入{site["module_name"]}成功')
     return sign_queue

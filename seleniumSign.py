@@ -5,6 +5,7 @@ import traceback
 import time
 import json
 import datetime
+import argparse
 from selenium.webdriver.common.by import By
 # from selenium.webdriver.support.wait import WebDriverWait
 
@@ -13,7 +14,7 @@ from init import myLogger
 from init import config_init
 from helper import module_importer
 
-def printList(sign_list: list, logger, is_detail: bool):
+def printList(sign_list: list, is_detail: bool):
     if not sign_list:
         logger.info("空")
     else:
@@ -41,27 +42,34 @@ def record_extra_info(sign_list: list):
                 logger.info(f"{sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
             result_data.append(sign.result)
 
-def get_sign_queue(driver):
+def get_sign_queue(driver, module_name):
     # 获取目录下.py文件的文件名
     target_directory = 'target'
     data = module_importer.load_target_json(target_directory, 'sign_site.json')
-    if 'all' in data and data['all'] != True and "module_list" in data:
-        sign_queue = module_importer.import_modules(all = False, dir = target_directory, sites = data['module_list'], driver = driver)
+    if module_name != 'all':
+        sign_queue = module_importer.import_modules(all = False, dir = target_directory, sites = module_name, driver = driver)
+        return sign_queue
     else:
-        logger.info("import所有模块")
-        sign_queue = module_importer.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
-    return sign_queue
+        if 'all' in data and data['all'] != True and "module_list" in data:
+            sign_queue = module_importer.import_modules(all = False, dir = target_directory, sites = data['module_list'], driver = driver)
+        else:
+            logger.info("import所有模块")
+            sign_queue = module_importer.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
+        return sign_queue
 
-def do_sign(sign_queue: queue.Queue, logger, driver) -> list:
+def do_sign(sign_queue: queue.Queue, force) -> list:
     succeedList = []
     failedList = []
     passList = []
-    try:
-        with open("log/result_data.json", "r", encoding='utf-8') as f:
-        # 将文件内容转换为 JSON 对象列表
-            data = json.load(f)
-    except:
+    if force:
         data = []
+    else:
+        try:
+            with open("log/result_data.json", "r", encoding='utf-8') as f:
+            # 将文件内容转换为 JSON 对象列表
+                data = json.load(f)
+        except:
+            data = []
     while not sign_queue.empty():
         sign = sign_queue.get()
         logger.info(f"开始{sign.indexUrl}")
@@ -136,12 +144,12 @@ def get_web_driver_and_logger() -> list:
 
     return [driver, logger]
 
-def resign(fs, logger, driver) -> list:
+def resign(fs) -> list:
     logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
     sign_queue = queue.Queue()
     for f in fs:
         sign_queue.put(f)
-    ss, fs, ps = do_sign(sign_queue, logger, driver)
+    ss, fs, ps = do_sign(sign_queue)
     if len(ps) != 0:
         logger.warning(f"异常len of pass site: {len(ps)}")
     return [ss, fs]
@@ -202,7 +210,8 @@ def not_retry(sign):
                 return True
     return False
 
-if __name__ == "__main__":
+def main(force: bool, module_name: str):
+    global logger
     driver, logger = get_web_driver_and_logger()
     '''
     WebDriverWait(driver, 10).until(
@@ -211,10 +220,10 @@ if __name__ == "__main__":
         )
     '''
     if driver and logger:
-        sign_queue = get_sign_queue(driver)
+        sign_queue = get_sign_queue(driver, module_name)
 
         logger.info(f"有{sign_queue.qsize()}个站需要签到")
-        ss, fs, ps = do_sign(sign_queue, logger, driver)
+        ss, fs, ps = do_sign(sign_queue, force)
         logger.info(f"忽略签到{len(ps)}个站")
 
         real_failed_list = []
@@ -231,21 +240,21 @@ if __name__ == "__main__":
         fs2 = []
         if fs:
             time.sleep(5)
-            ss2, fs2 = resign(fs, logger, driver)
+            ss2, fs2 = resign(fs)
             logger.info(f"重新签到, 成功{len(fs) - len(fs2)}/{len(fs)}")
 
         ss3 = []
         fs3 = []
         if fs2:
             time.sleep(5)
-            ss3, fs3 = resign(fs2, logger, driver)
+            ss3, fs3 = resign(fs2)
             logger.info(f"重新签到, 成功{len(fs2) - len(fs3)}/{len(fs2)}")
 
         logger.info("不重试签到 列表：")
-        printList(temp_pass, logger, True)
+        printList(temp_pass, True)
 
         logger.info("重试依然签到失败 列表：")
-        printList(fs3, logger, True)
+        printList(fs3, True)
 
         record_extra_info(ss + ss2 + ss3 + fs3)
 
@@ -254,3 +263,20 @@ if __name__ == "__main__":
     else:
         logger.error(f"webdriver 初始化失败")
         sys.exit(-1)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='哈哈哈哈')
+
+    # 添加命令行参数
+    parser.add_argument('-f', '--force', action='store_true', help='强制重新运行，忽略已运行记录')
+    parser.add_argument('module_name', nargs='?', default='all', help='指定模块名，默认all')
+
+    # 解析命令行参数
+    args = parser.parse_args()
+
+    # 输出解析结果
+    print('参数1:', args.force)
+    print('参数2:', args.module_name)
+
+    main(args.force, args.module_name)
