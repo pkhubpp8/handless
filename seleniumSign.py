@@ -156,6 +156,7 @@ def resign(fs) -> list:
 
 def rewrite_result(sign_list: list):
     new_data = []
+    # load旧数据
     try:
         with open("log/result_data.json", "r", encoding='utf-8') as f:
         # 将文件内容转换为 JSON 对象列表
@@ -176,9 +177,18 @@ def rewrite_result(sign_list: list):
         logger.warning(f"错误堆栈信息：")
         logger.warning(traceback.format_exc())
 
+    # 追加新数据
     logger.info(f"尝试写入打卡数据")
     for sign in sign_list:
-        new_data.append(sign.result)
+        # 判断sign.result是否在new_data中已存在，已存在则修改
+        for item in new_data:
+            if "module_name" in item and "module_name" in sign.result and item["module_name"] == sign.result["module_name"]:
+                # 如果找到匹配项，则修改数据
+                item.update(sign.result)
+                break
+        else:
+            # 如果没有找到匹配项，则追加新数据
+            new_data.append(sign.result)
 
     with open("log/result_data.json", "w", encoding='utf-8') as f:
         # 将 JSON 对象列表写入文件
