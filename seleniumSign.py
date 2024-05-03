@@ -123,7 +123,7 @@ def do_sign(sign_queue: queue.Queue, force) -> list:
 
     return [succeedList, failedList, passList]
 
-def get_web_driver_and_logger() -> list:
+def get_logger() -> list:
     config_data = config_init.get_config_for_sign()
     log_path = config_data['log_path']
     if not os.path.exists(log_path):
@@ -134,6 +134,14 @@ def get_web_driver_and_logger() -> list:
     firefox_profile.setLogger(logger)
     module_importer.setLogger(logger)
 
+    return logger
+
+def get_web_driver() -> list:
+    config_data = config_init.get_config_for_sign()
+    log_path = config_data['log_path']
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+
     browser = config_data['browser']
     if browser == 'firefox':
         geckodriver_log_path = os.path.join(log_path, 'geckodriver.log')
@@ -142,7 +150,7 @@ def get_web_driver_and_logger() -> list:
         logger.error(f"当前不支持")
         sys.exit(-1)
 
-    return [driver, logger]
+    return driver
 
 def resign(fs) -> list:
     logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
@@ -221,8 +229,7 @@ def not_retry(sign):
     return False
 
 def main(force: bool, module_name: str):
-    global logger
-    driver, logger = get_web_driver_and_logger()
+    driver = get_web_driver()
     '''
     WebDriverWait(driver, 10).until(
             lambda wd: driver.execute_script("return document.readyState") == 'complete',
@@ -276,6 +283,8 @@ def main(force: bool, module_name: str):
 
 
 if __name__ == "__main__":
+    global logger
+    logger = get_logger()
     parser = argparse.ArgumentParser(description='哈哈哈哈')
 
     # 添加命令行参数
@@ -286,7 +295,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # 输出解析结果
-    print('参数1:', args.force)
-    print('参数2:', args.module_name)
-
-    main(args.force, args.module_name)
+    logger.info(f'参数1: {args.force}')
+    logger.info(f'参数2: {args.module_name}')
+    if args.force or args.module_name != 'all':
+        main(args.force, args.module_name)
+    else:
+        logger.info(f'开始等待')
+        while True:
+            now = datetime.datetime.now()
+            today = datetime.date.today()
+            current_hour = now.hour
+            current_minute = now.minute
+            if current_hour == 1 and current_minute == 0:
+                logger.info(f'现在是{today.day}日{current_hour}时{current_minute}分')
+                main(args.force, args.module_name)
+            else:
+                time.sleep(50)
+                continue
