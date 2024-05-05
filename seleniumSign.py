@@ -306,9 +306,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # 输出解析结果
-    logger.info(f'参数1: {args.force}')
-    logger.info(f'参数1: {args.once}')
-    logger.info(f'参数2: {args.module_name}')
+    logger.info(f'参数 force: {args.force}')
+    logger.info(f'参数 once: {args.once}')
+    logger.info(f'参数 module_name: {args.module_name}')
     if args.once == True:
         main(args.force, args.module_name)
     else:
