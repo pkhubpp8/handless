@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import importlib
-import queue
 
 
 logger = logging.getLogger("default")
@@ -25,8 +24,8 @@ def load_target_json(dir, json_file):
         return data
 
 
-def import_modules(all = True, dir = "", sites = [], driver = None):
-    sign_queue = queue.Queue()
+def import_modules(all = True, dir = "", sites = []) -> list:
+    sign_list = []
     if all == True:
         # 获取目录下所有.py文件的文件名
         py_files = [f[:-3] for f in os.listdir(dir) if f.endswith('.py')]
@@ -35,7 +34,7 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
             if module_name == '_BASE':
                 continue
             module = importlib.import_module(f'{dir}.{module_name}')
-            sign_queue.put(module.signClass(driver))
+            sign_list.append(module.signClass())
             logger.info(f'导入{dir}.{module_name}成功')
     else:
         unique_sign_sites = []
@@ -43,7 +42,7 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
         if isinstance(sites, str):
             logger.info(f'指定运行{sites}')
             module = importlib.import_module(f'{dir}.{sites}')
-            sign_queue.put(module.signClass(driver))
+            sign_list.append(module.signClass())
             logger.info(f'导入{sites}成功')
         else:
             for site in sites:
@@ -57,8 +56,8 @@ def import_modules(all = True, dir = "", sites = [], driver = None):
             for site in unique_sign_sites:
                 module = importlib.import_module(f'{dir}.{site["module_name"]}')
                 if site["url"]:
-                    sign_queue.put(module.signClass(driver, site["url"]))
+                    sign_list.append(module.signClass(site["url"]))
                 else:
-                    sign_queue.put(module.signClass(driver))
+                    sign_list.append(module.signClass())
                 logger.info(f'导入{site["module_name"]}成功')
-    return sign_queue
+    return sign_list

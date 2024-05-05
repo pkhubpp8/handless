@@ -1,6 +1,5 @@
 import os
 import sys
-import queue
 import traceback
 import time
 import json
@@ -30,37 +29,35 @@ def printList(sign_list: list, is_detail: bool):
             else:
                 logger.info(f"{sign.indexUrl}")
 
-def record_extra_info(sign_list: list):
+def show_extra_info(sign_list: list):
     logger.info("start print extra info")
     if not sign_list:
         logger.info("空")
         return
-    result_data = []
     for sign in sign_list:
         if sign.result:
             if sign.result.get('extra_info') or sign.result.get('new_message'):
                 logger.info(f"{sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
-            result_data.append(sign.result)
 
-def get_sign_queue(driver, module_name):
+def get_sign_list(module_name):
     # 获取目录下.py文件的文件名
     target_directory = 'target'
     data = module_importer.load_target_json(target_directory, 'sign_site.json')
     if module_name != 'all':
-        sign_queue = module_importer.import_modules(all = False, dir = target_directory, sites = module_name, driver = driver)
-        return sign_queue
+        sign_list = module_importer.import_modules(all = False, dir = target_directory, sites = module_name)
+        return sign_list
     else:
         if 'all' in data and data['all'] != True and "module_list" in data:
-            sign_queue = module_importer.import_modules(all = False, dir = target_directory, sites = data['module_list'], driver = driver)
+            sign_list = module_importer.import_modules(all = False, dir = target_directory, sites = data['module_list'])
         else:
             logger.info("import所有模块")
-            sign_queue = module_importer.import_modules(all = True, dir = target_directory, sites = [], driver = driver)
-        return sign_queue
+            sign_list = module_importer.import_modules(all = True, dir = target_directory, sites = [])
+        return sign_list
 
-def do_sign(sign_queue: queue.Queue, force) -> list:
-    succeedList = []
-    failedList = []
-    passList = []
+
+def get_and_remove_ignore_list(sign_list: list, force) -> list:
+    ignore_list = []
+
     if force:
         data = []
     else:
@@ -70,34 +67,42 @@ def do_sign(sign_queue: queue.Queue, force) -> list:
                 data = json.load(f)
         except:
             data = []
-    while not sign_queue.empty():
-        sign = sign_queue.get()
-        logger.info(f"开始{sign.indexUrl}")
-        try:
-            need_go_ahead = True
-            for last in data:
-                if last == None or sign.module_name != last['module_name']:
-                    continue
-                last_timestamp = last['date_and_time']
-                last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
-                current_datetime = datetime.datetime.now()
-                if last_sign_time.day == current_datetime.day:
-                    if last['sign_result'] == True:
-                        need_go_ahead = False
-                break
-            if need_go_ahead == False:
-                logger.info(f"{sign.module_name}今天已经签到成功了，无需再次签到")
-                passList.append(sign)
+    for sign in sign_list[:]:
+        logger.info(f"检查{sign.module_name}")
+        need_sign = True
+        for last in data:
+            if last == None or sign.module_name != last['module_name']:
                 continue
+            last_timestamp = last['date_and_time']
+            last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
+            current_datetime = datetime.datetime.now()
+            if last_sign_time.day == current_datetime.day:
+                if last['sign_result'] == True:
+                    need_sign = False
+            break
+        if need_sign == False:
+            logger.info(f"{sign.module_name}今天已经签到成功了，无需再次签到")
+            ignore_list.append(sign)
+            sign_list.remove(sign)
+    return ignore_list
 
+def do_sign(sign_list: list, driver) -> list:
+    succeed_list = []
+    fail_list = []
+    for sign in sign_list[:]:
+        logger.info(f"开始{sign.indexUrl}, module name = {sign.module_name}")
+        try:
+            if not sign.get_driver():
+                sign.set_driver(driver)
             if hasattr(sign, 'accessIndex') and callable(getattr(sign, 'accessIndex')):
                 sign.accessIndex()
             if hasattr(sign, 'valid_access') and callable(getattr(sign, 'valid_access')):
                 if not sign.valid_access():
                     if hasattr(sign, 'collect_info') and callable(getattr(sign, 'collect_info')):
                         logger.info(sign.collect_info())
-                    failedList.append(sign)
+                    fail_list.append(sign)
                     sign.exit()
+                    sign_list.remove(sign)
                     continue
             if hasattr(sign, 'sign') and callable(getattr(sign, 'sign')):
                 sign.sign()
@@ -105,23 +110,24 @@ def do_sign(sign_queue: queue.Queue, force) -> list:
                 sign.msgCheck()
             if hasattr(sign, 'validSign') and callable(getattr(sign, 'validSign')):
                 if sign.validSign():
-                    succeedList.append(sign)
+                    succeed_list.append(sign)
                 else:
-                    failedList.append(sign)
+                    fail_list.append(sign)
                     # driver.save_screenshot('log/' + sign.module_name + '_snapshot.png')
                     # with open('log/' + sign.module_name + '_page.html', 'w', encoding='utf-8') as file:
                     #     file.write(driver.page_source)
             else:
-                failedList.append(sign)
+                fail_list.append(sign)
             if hasattr(sign, 'collect_info') and callable(getattr(sign, 'collect_info')):
                 logger.info(sign.collect_info())
         except Exception as e:
             logger.error(f"something error: {e}")
             logger.warning(traceback.format_exc())
-            failedList.append(sign)
+            fail_list.append(sign)
         sign.exit()
+        sign_list.remove(sign)
 
-    return [succeedList, failedList, passList]
+    return [succeed_list, fail_list]
 
 def get_logger() -> list:
     config_data = config_init.get_config_for_sign()
@@ -152,15 +158,10 @@ def get_web_driver() -> list:
 
     return driver
 
-def resign(fs) -> list:
-    logger.info(f"失败{len(fs)}。尝试再次签到失败网站")
-    sign_queue = queue.Queue()
-    for f in fs:
-        sign_queue.put(f)
-    ss, fs, ps = do_sign(sign_queue)
-    if len(ps) != 0:
-        logger.warning(f"异常len of pass site: {len(ps)}")
-    return [ss, fs]
+def resign(fail_list, driver) -> list:
+    logger.info(f"失败{len(fail_list)}。尝试再次签到失败网站")
+    ss, fail_list = do_sign(fail_list, driver)
+    return [ss, fail_list]
 
 def rewrite_result(sign_list: list):
     new_data = []
@@ -189,11 +190,12 @@ def rewrite_result(sign_list: list):
     logger.info(f"尝试写入打卡数据")
     for sign in sign_list:
         # 判断sign.result是否在new_data中已存在，已存在则修改
-        for item in new_data:
-            if "module_name" in item and "module_name" in sign.result and item["module_name"] == sign.result["module_name"]:
-                # 如果找到匹配项，则修改数据
-                item.update(sign.result)
-                break
+        if len(new_data):
+            for item in new_data:
+                if "module_name" in item and "module_name" in sign.result and item["module_name"] == sign.result["module_name"]:
+                    # 如果找到匹配项，则修改数据
+                    item.update(sign.result)
+                    break
         else:
             # 如果没有找到匹配项，则追加新数据
             new_data.append(sign.result)
@@ -229,56 +231,64 @@ def not_retry(sign):
     return False
 
 def main(force: bool, module_name: str):
-    driver = get_web_driver()
     '''
     WebDriverWait(driver, 10).until(
             lambda wd: driver.execute_script("return document.readyState") == 'complete',
             "Page taking too long to load"
         )
     '''
-    if driver and logger:
-        sign_queue = get_sign_queue(driver, module_name)
+    if logger:
+        sign_list = get_sign_list(module_name)
+        target_size = len(sign_list);
+        logger.info(f"有{target_size}个站需要签到")
+        ignore_list = get_and_remove_ignore_list(sign_list, force)
+        logger.info(f"有{ignore_list}个站忽略签到")
+        if len(ignore_list) == target_size:
+            logger.info(f"没有站需要签到，等待30秒结束") # 防止运行过快
+            time.sleep(30)
+            return
 
-        logger.info(f"有{sign_queue.qsize()}个站需要签到")
-        ss, fs, ps = do_sign(sign_queue, force)
-        logger.info(f"忽略签到{len(ps)}个站")
+        driver = get_web_driver()
+        if driver:
+            succeed_list, fail_list = do_sign(sign_list, driver)
+            logger.info(f"签到成功{len(succeed_list)}个站，失败{len(fail_list)}个站")
 
-        real_failed_list = []
-        temp_pass = []
-        for item in fs:
-            if not_retry(item) == True:
-                temp_pass.append(item)
-            else:
-                real_failed_list.append(item)
-        fs = real_failed_list
-        ps = ps + temp_pass
+            real_failed_list = []
+            temp_pass = []
+            for item in fail_list:
+                if not_retry(item) == True:
+                    temp_pass.append(item)
+                else:
+                    real_failed_list.append(item)
+            fail_list = real_failed_list
 
-        ss2 = []
-        fs2 = []
-        if fs:
-            time.sleep(5)
-            ss2, fs2 = resign(fs)
-            logger.info(f"重新签到, 成功{len(fs) - len(fs2)}/{len(fs)}")
+            succeed_list2 = []
+            fail_list2 = []
+            if fail_list:
+                time.sleep(5)
+                succeed_list2, fail_list2 = resign(fail_list, driver)
+                logger.info(f"重新签到, 成功{len(succeed_list2)}/失败{len(fail_list2)}")
 
-        ss3 = []
-        fs3 = []
-        if fs2:
-            time.sleep(5)
-            ss3, fs3 = resign(fs2)
-            logger.info(f"重新签到, 成功{len(fs2) - len(fs3)}/{len(fs2)}")
+            succeed_list3 = []
+            fail_list3 = []
+            if fail_list2:
+                time.sleep(5)
+                succeed_list3, fail_list3 = resign(fail_list2, driver)
+                logger.info(f"重新签到, 成功{len(succeed_list3)}/失败{len(fail_list3)}")
 
-        logger.info("不重试签到 列表：")
-        printList(temp_pass, True)
+            logger.info("不重试签到 列表：")
+            printList(temp_pass, True)
 
-        logger.info("重试依然签到失败 列表：")
-        printList(fs3, True)
+            logger.info("重试依然签到失败 列表：")
+            printList(fail_list3, True)
 
-        record_extra_info(ss + ss2 + ss3 + fs3)
+            show_extra_info(succeed_list + succeed_list2 + succeed_list3 + fail_list3)
 
-        rewrite_result(ss + ss2 + ss3 + fs3)
-        driver.quit()
+            rewrite_result(succeed_list + succeed_list2 + succeed_list3 + fail_list3)
+            driver.quit()
+            driver = None
     else:
-        logger.error(f"webdriver 初始化失败")
+        logger.error(f"初始化失败")
         sys.exit(-1)
 
 
@@ -289,6 +299,7 @@ if __name__ == "__main__":
 
     # 添加命令行参数
     parser.add_argument('-f', '--force', action='store_true', help='强制重新运行，忽略已运行记录')
+    parser.add_argument('-o', '--once', action='store_true', help='运行一次')
     parser.add_argument('module_name', nargs='?', default='all', help='指定模块名，默认all')
 
     # 解析命令行参数
@@ -296,8 +307,9 @@ if __name__ == "__main__":
 
     # 输出解析结果
     logger.info(f'参数1: {args.force}')
+    logger.info(f'参数1: {args.once}')
     logger.info(f'参数2: {args.module_name}')
-    if args.force or args.module_name != 'all':
+    if args.once == True:
         main(args.force, args.module_name)
     else:
         logger.info(f'开始等待')
@@ -311,4 +323,3 @@ if __name__ == "__main__":
                 main(args.force, args.module_name)
             else:
                 time.sleep(50)
-                continue

@@ -10,9 +10,8 @@ from ._BASE import signBase
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, driver, url = 'https://www.hifini.com/sg_sign.htm', module_name: str = 'hifiSign'):
+    def __init__(self, url = 'https://www.hifini.com/sg_sign.htm', module_name: str = 'hifiSign'):
         self.indexUrl = url
-        self.driver = driver
         self.module_name = module_name
         super().__init__("hifini")
     def accessIndex(self):
@@ -158,6 +157,3 @@ $.xpost(xn.url('sg_sign'), {{'sign':  sign}}, function(code, message) {{
             "extra_info": self.extra_info
         }
         return self.result
-    def exit(self):
-        self.driver.close()
-        self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页

@@ -7,9 +7,8 @@ from ._BASE import signBase
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, driver, url = 'http://hdfun.me/index.php', module_name: str = 'hdfunSign'):
+    def __init__(self, url = 'http://hdfun.me/index.php', module_name: str = 'hdfunSign'):
         self.indexUrl = url
-        self.driver = driver
         self.module_name = module_name
         super().__init__("hdfun")
     def accessIndex(self):
@@ -68,6 +67,3 @@ class signClass(signBase):
             "extra_info": self.extra_info
         }
         return self.result
-    def exit(self):
-        self.driver.close()
-        self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
