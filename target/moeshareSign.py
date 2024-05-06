@@ -13,8 +13,6 @@ class signClass(signBase):
         self.module_name = module_name
         super().__init__("moeshare")
     def accessIndex(self):
-        self.driver.execute_script("window.open('', '_blank');")  # 打开新标签页
-        self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
         self.driver.get(self.indexUrl)  # 打开链接
         time.sleep(1)
     def valid_access(self):

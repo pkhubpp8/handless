@@ -16,6 +16,6 @@ class signBase:
         return self.driver
     def exit(self):
         if self.driver:
-            self.driver.close()
-            self.driver.switch_to.window(self.driver.window_handles[-1])  # 切换到新标签页
+            # 因为没有切换到新标签页，所以不需要close，直接打开下一个页面即可
+            # self.driver.close()
             self.driver = None
