@@ -242,7 +242,7 @@ def main(force: bool, module_name: str):
         target_size = len(sign_list);
         logger.info(f"有{target_size}个站需要签到")
         ignore_list = get_and_remove_ignore_list(sign_list, force)
-        logger.info(f"有{ignore_list}个站忽略签到")
+        logger.info(f"有{len(ignore_list)}个站忽略签到")
         if len(ignore_list) == target_size:
             logger.info(f"没有站需要签到，等待30秒结束") # 防止运行过快
             time.sleep(30)
