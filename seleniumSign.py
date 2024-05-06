@@ -187,7 +187,7 @@ def rewrite_result(sign_list: list):
         logger.warning(traceback.format_exc())
 
     # 追加新数据
-    logger.info(f"尝试写入打卡数据")
+    logger.info(f"尝试写入{len(sign_list)}个打卡数据 ")
     for sign in sign_list:
         # 判断sign.result是否在new_data中已存在，已存在则修改
         if len(new_data):
