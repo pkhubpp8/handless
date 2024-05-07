@@ -33,15 +33,16 @@ def import_modules(all = True, dir = "", sites = []) -> list:
         for module_name in py_files:
             if module_name == '_BASE':
                 continue
-            module = importlib.import_module(f'{dir}.{module_name}')
-            sign_list.append(module.signClass())
-            logger.info(f'导入{dir}.{module_name}成功')
+            elif 'Sign' in module_name:
+                module = importlib.import_module(f'{dir}.{module_name}')
+                sign_list.append(module.signClass())
+                logger.info(f'导入{dir}.{module_name}成功')
     else:
         unique_sign_sites = []
         seen_module_names = set()
         if isinstance(sites, str):
             logger.info(f'指定运行{sites}')
-            module = importlib.import_module(f'{dir}.{sites}')
+            module = importlib.import_module(f'{dir}.{sites}Sign')
             sign_list.append(module.signClass())
             logger.info(f'导入{sites}成功')
         else:

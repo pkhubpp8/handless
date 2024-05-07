@@ -39,12 +39,12 @@ def show_extra_info(sign_list: list):
             if sign.result.get('extra_info') or sign.result.get('new_message'):
                 logger.info(f"{sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
 
-def get_sign_list(module_name):
+def get_sign_list(site_name: str):
     # 获取目录下.py文件的文件名
     target_directory = 'target'
     data = module_importer.load_target_json(target_directory, 'sign_site.json')
-    if module_name != 'all':
-        sign_list = module_importer.import_modules(all = False, dir = target_directory, sites = module_name)
+    if site_name != 'all':
+        sign_list = module_importer.import_modules(all = False, dir = target_directory, sites = site_name)
         return sign_list
     else:
         if 'all' in data and data['all'] != True and "module_list" in data:
@@ -231,7 +231,7 @@ def not_retry(sign):
                 return True
     return False
 
-def main(force: bool, module_name: str):
+def main(force: bool, site_name: str):
     '''
     WebDriverWait(driver, 10).until(
             lambda wd: driver.execute_script("return document.readyState") == 'complete',
@@ -239,7 +239,7 @@ def main(force: bool, module_name: str):
         )
     '''
     if logger:
-        sign_list = get_sign_list(module_name)
+        sign_list = get_sign_list(site_name)
         target_size = len(sign_list);
         logger.info(f"有{target_size}个站需要签到")
         ignore_list = get_and_remove_ignore_list(sign_list, force)
@@ -301,7 +301,7 @@ if __name__ == "__main__":
     # 添加命令行参数
     parser.add_argument('-f', '--force', action='store_true', help='强制重新运行，忽略已运行记录')
     parser.add_argument('-o', '--once', action='store_true', help='运行一次')
-    parser.add_argument('module_name', nargs='?', default='all', help='指定模块名，默认all')
+    parser.add_argument('site_name', nargs='?', default='all', help='指定站点名，默认all')
 
     # 解析命令行参数
     args = parser.parse_args()
@@ -309,9 +309,9 @@ if __name__ == "__main__":
     # 输出解析结果
     logger.info(f'参数 force: {args.force}')
     logger.info(f'参数 once: {args.once}')
-    logger.info(f'参数 module_name: {args.module_name}')
+    logger.info(f'参数 site_name: {args.site_name}')
     if args.once == True:
-        main(args.force, args.module_name)
+        main(args.force, args.site_name)
     else:
         logger.info(f'开始等待')
         while True:
@@ -321,6 +321,6 @@ if __name__ == "__main__":
             current_minute = now.minute
             if current_hour == 1 and current_minute == 0:
                 logger.info(f'现在是{today.day}日{current_hour}时{current_minute}分')
-                main(args.force, args.module_name)
+                main(args.force, args.site_name)
             else:
                 time.sleep(50)
