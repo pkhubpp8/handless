@@ -14,11 +14,16 @@ class signClass(signBase):
     def accessIndex(self):
         self.driver.get(self.indexUrl)  # 打开链接
     def msgCheck(self) -> bool:
-        elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
-        if len(elements) == 1:
-            self.new_message = elements[0].text.strip()
+        new_msg_elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条新短讯！点击查看")
+        if len(new_msg_elements) == 1:
+            self.new_message = new_msg_elements[0].text.strip()
             return True
-        elif len(elements) == 0:
+
+        important_msg_elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "条未读的重要消息")
+        if len(important_msg_elements) == 1:
+            self.new_message = important_msg_elements[0].text.strip()
+            return True
+        elif len(important_msg_elements) == 0:
             return False
         else:
             self.new_message = "warning: " + elements[0].text.strip()

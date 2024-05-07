@@ -190,14 +190,13 @@ def rewrite_result(sign_list: list):
     logger.info(f"尝试写入{len(sign_list)}个打卡数据 ")
     for sign in sign_list:
         # 判断sign.result是否在new_data中已存在，已存在则修改
-        if len(new_data):
-            for item in new_data:
-                if "module_name" in item and "module_name" in sign.result and item["module_name"] == sign.result["module_name"]:
-                    # 如果找到匹配项，则修改数据
-                    item.update(sign.result)
-                    break
+        for item in new_data:
+            if "module_name" in item and "module_name" in sign.result and item["module_name"] == sign.result["module_name"]:
+                # 如果找到匹配项，则修改数据
+                item.update(sign.result)
+                break
         else:
-            # 如果没有找到匹配项，则追加新数据
+            # 如果没找到匹配项，则追加数据
             new_data.append(sign.result)
 
     logger.info(f"决定写入{len(new_data)}个打卡数据 ")
