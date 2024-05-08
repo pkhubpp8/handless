@@ -200,7 +200,7 @@ def rewrite_result(sign_list: list):
             new_data.append(sign.result)
 
     logger.info(f"决定写入{len(new_data)}个打卡数据 ")
-    logger.info(new_data)
+    # logger.info(new_data)
     with open("log/result_data.json", "w", encoding='utf-8') as f:
         # 将 JSON 对象列表写入文件
         json.dump(new_data, f, ensure_ascii=False, indent=4)
