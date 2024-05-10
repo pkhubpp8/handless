@@ -8,7 +8,7 @@ from ._BASE import signBase
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, url = 'https://moeshare.cc/', module_name: str = 'moeshareSign'):
+    def __init__(self, url = 'https://moeshare.cc', module_name: str = 'moeshareSign'):
         self.indexUrl = url
         self.module_name = module_name
         super().__init__("moeshare")
@@ -27,7 +27,7 @@ class signClass(signBase):
                 self.access_result_info = ""
                 elements = self.driver.find_elements(By.PARTIAL_LINK_TEXT, "每日打卡")
                 for element in elements:
-                    if element.get_attribute("href") == (self.indexUrl + 'u.php'):
+                    if element.get_attribute("href") == (self.indexUrl + '/u.php'):
                         element.click()
                         time.sleep(1)
                         break

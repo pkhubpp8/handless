@@ -2,6 +2,7 @@ import logging
 import re
 import os
 import sys
+import time
 
 logger = logging.getLogger("default")
 
@@ -108,6 +109,7 @@ def create_firefox_with_user_profile(webdriver_log_path: str):
     from selenium import webdriver
     service = webdriver.firefox.service.Service(log_path = webdriver_log_path)
     driver = webdriver.Firefox(options = ffOptions, service = service)
+    time.sleep(3)
     driver.maximize_window()
     logger.info(driver.execute_script("return navigator.userAgent"))
     return driver
