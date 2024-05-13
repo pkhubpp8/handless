@@ -87,6 +87,8 @@ class signClass(signBase):
             "module_name": self.module_name,
             "site_name": self.site_name,
             "site_url": self.indexUrl,
+            "access_result": self.access_result,
+            "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "date_and_time": int(time.time()),

@@ -268,14 +268,14 @@ def main(force: bool, site_name: str):
             if fail_list:
                 time.sleep(5)
                 succeed_list2, fail_list2 = resign(fail_list, driver)
-                logger.info(f"重新签到, 成功{len(succeed_list2)}/失败{len(fail_list2)}")
+                logger.info(f"重新签到1, 成功{len(succeed_list2)}/失败{len(fail_list2)}")
 
             succeed_list3 = []
             fail_list3 = []
             if fail_list2:
                 time.sleep(5)
                 succeed_list3, fail_list3 = resign(fail_list2, driver)
-                logger.info(f"重新签到, 成功{len(succeed_list3)}/失败{len(fail_list3)}")
+                logger.info(f"重新签到2, 成功{len(succeed_list3)}/失败{len(fail_list3)}")
 
             logger.info("不重试签到 列表：")
             printList(temp_pass, True)
@@ -322,5 +322,6 @@ if __name__ == "__main__":
             if current_hour == 1 and current_minute == 0:
                 logger.info(f'现在是{today.day}日{current_hour}时{current_minute}分')
                 main(args.force, args.site_name)
+                logger.info(f'开始等待')
             else:
                 time.sleep(50)
