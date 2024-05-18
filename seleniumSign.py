@@ -191,13 +191,20 @@ def rewrite_result(sign_list: list):
     for sign in sign_list:
         # 判断sign.result是否在new_data中已存在，已存在则修改
         for item in new_data:
-            if "module_name" in item and "module_name" in sign.result and item["module_name"] == sign.result["module_name"]:
+            if "module_name" in item and item["module_name"] == sign.module_name:
                 # 如果找到匹配项，则修改数据
-                item.update(sign.result)
-                break
+                if not hasattr(sign, 'result'):
+                    item.update(None)
+                else:
+                    item.update(sign.result)
+                    break
         else:
             # 如果没找到匹配项，则追加数据
-            new_data.append(sign.result)
+            if not hasattr(sign, 'result'):
+                item.update(None)
+            else:
+                item.update(sign.result)
+                break
 
     logger.info(f"决定写入{len(new_data)}个打卡数据 ")
     # logger.info(new_data)
