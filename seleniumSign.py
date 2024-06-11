@@ -323,7 +323,7 @@ if __name__ == "__main__":
             today = datetime.date.today()
             current_hour = now.hour
             current_minute = now.minute
-            if current_hour == 1 and current_minute == 0:
+            if current_hour == 4 and current_minute == 0:
                 logger.info(f'现在是{today.day}日{current_hour}时{current_minute}分')
                 main(args.force, args.site_name)
                 logger.info(f'开始等待')
