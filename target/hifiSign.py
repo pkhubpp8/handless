@@ -13,7 +13,7 @@ class signClass(signBase):
     def __init__(self, url = 'https://www.hifini.com/sg_sign.htm', module_name: str = 'hifiSign'):
         self.indexUrl = url
         self.module_name = module_name
-        super().__init__("hifini")
+        super().__init__("hifi")
     def accessIndex(self):
         self.driver.get(self.indexUrl)  # 打开链接
         time.sleep(10)
