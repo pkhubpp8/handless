@@ -199,6 +199,7 @@ def rewrite_result(sign_list: list):
                     item.update(sign.result)
                     break
         else:
+            logger.info(f"没找到匹配项，尝试追加数据")
             # 如果没找到匹配项，则追加数据
             if not hasattr(sign, 'result'):
                 new_data.append(sign.result)

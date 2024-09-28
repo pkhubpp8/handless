@@ -70,9 +70,9 @@ def initGame(game: GAME):
     if not currentUA:
         currentUA = firefox_profile.getUA(tempDriver)
 
-    sid = localSql.getCookieByUrlAndName('zhuque.in', 'connect.sid')
+    sid = localSql.getCookieByUrlAndName('zhuque.in', 'socute')
 
-    game.setCookie(f"connect.sid={sid}")
+    game.setCookie(f"socute={sid}")
     game.setUA(currentUA)
 
     csrf = getCsrfToken(ua = game.getUA(), cookie = game.getCookie())
