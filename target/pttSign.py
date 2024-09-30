@@ -31,7 +31,7 @@ class signClass(signBase):
                 element.click()
                 break
     def valid_access(self):
-        if not re.search('PTT.*NexusPHP', self.driver.title):
+        if not re.search('PTT ::.*', self.driver.title):
             self.access_result = False
             self.access_result_info = f"标题异常：{self.driver.title}"
             return False
@@ -46,7 +46,7 @@ class signClass(signBase):
         self.access_result_info = f"未登录"
         return False
     def validSign(self):
-        if not re.search('PTT.*NexusPHP', self.driver.title):
+        if not re.search('PTT ::.*', self.driver.title):
             self.sign_result = False
             self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
