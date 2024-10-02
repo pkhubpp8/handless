@@ -201,7 +201,7 @@ def rewrite_result(sign_list: list):
         else:
             logger.info(f"没找到匹配项，尝试追加数据")
             # 如果没找到匹配项，则追加数据
-            if not hasattr(sign, 'result'):
+            if hasattr(sign, 'result'):
                 new_data.append(sign.result)
 
     logger.info(f"决定写入{len(new_data)}个打卡数据 ")
