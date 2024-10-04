@@ -141,6 +141,7 @@ $.xpost(xn.url('sg_sign'), {{'sign':  sign}}, function(code, message) {{
         self.sign_result_info = f"未知异常。"
         return False
     def collect_info(self) -> dict:
+        t = time.time()
         self.result = {
             "module_name": self.module_name,
             "site_name": self.site_name,
@@ -149,8 +150,8 @@ $.xpost(xn.url('sg_sign'), {{'sign':  sign}}, function(code, message) {{
             "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
-            "date_and_time": int(time.time()),
-            "need_resign": self.need_resign,
+            "timestamp": int(t),
+            "timestrimg": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
             "new_message": self.new_message,
             "extra_info": self.extra_info
         }

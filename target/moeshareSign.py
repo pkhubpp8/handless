@@ -101,6 +101,7 @@ class signClass(signBase):
         reply_info = f"{datetime.datetime.now().strftime('%m月%d日 %H:%M:%S')}, 新的一天，灌点水，拿点活跃度"
         # todo
     def collect_info(self) -> dict:
+        t = time.time()
         current_date_time = datetime.datetime.now()
         day = current_date_time.day
         if day >= 28:
@@ -113,8 +114,8 @@ class signClass(signBase):
             "access_result_info": self.access_result_info,
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
-            "date_and_time": int(time.time()),
-            "need_resign": self.need_resign,
+            "timestamp": int(t),
+            "timestrimg": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
             "new_message": self.new_message,
             "extra_info": self.extra_info
         }

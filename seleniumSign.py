@@ -13,6 +13,8 @@ from init import myLogger
 from init import config_init
 from helper import module_importer
 
+RESULT_VERSION = 1.0
+
 def printList(sign_list: list, is_detail: bool):
     if not sign_list:
         logger.info("空")
@@ -58,13 +60,15 @@ def get_sign_list(site_name: str):
 def get_and_remove_ignore_list(sign_list: list, force) -> list:
     ignore_list = []
 
-    if force:
-        data = []
-    else:
+    data = []
+    if not force:
         try:
             with open("log/result_data.json", "r", encoding='utf-8') as f:
-            # 将文件内容转换为 JSON 对象列表
-                data = json.load(f)
+                result_data = json.load(f)
+                if 'version' in result_data and result_data['version'] == RESULT_VERSION:
+                    data = result_data['result']
+                else:
+                    logger.info(f"reult版本已过时，丢弃")
         except:
             data = []
     for sign in sign_list[:]:
@@ -73,7 +77,7 @@ def get_and_remove_ignore_list(sign_list: list, force) -> list:
         for last in data:
             if last == None or sign.module_name != last['module_name']:
                 continue
-            last_timestamp = last['date_and_time']
+            last_timestamp = last['timestamp']
             last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
             current_datetime = datetime.datetime.now()
             if last_sign_time.day == current_datetime.day:
@@ -164,23 +168,29 @@ def resign(fail_list, driver) -> list:
     return [ss, fail_list]
 
 def rewrite_result(sign_list: list):
-    new_data = []
+    new_data = {'version': RESULT_VERSION, 'result': []}
+    data = []
     # load旧数据
     try:
         with open("log/result_data.json", "r", encoding='utf-8') as f:
         # 将文件内容转换为 JSON 对象列表
-            data = json.load(f)
+            result_data = json.load(f)
+            if 'version' in result_data and result_data['version'] == RESULT_VERSION:
+                data = result_data['result']
+            else:
+                logger.info(f"reult版本已过时，丢弃")
+
             for i in range(len(data)):
                 if data[i] == None:
                     continue
-                last_timestamp = data[i]['date_and_time']
+                last_timestamp = data[i]['timestamp']
                 last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
                 current_datetime = datetime.datetime.now()
                 if last_sign_time.day != current_datetime.day:
                     continue
                 if data[i]['sign_result'] == False:
                     continue
-                new_data.append(data[i])
+                new_data['result'].append(data[i])
     except Exception as e:
         logger.warning(f"打开结果记录异常：{e}")
         logger.warning(f"错误堆栈信息：")
@@ -189,8 +199,8 @@ def rewrite_result(sign_list: list):
     # 追加新数据
     logger.info(f"尝试写入{len(sign_list)}个打卡数据 ")
     for sign in sign_list:
-        # 判断sign.result是否在new_data中已存在，已存在则修改
-        for item in new_data:
+        # 判断sign.result是否在new_data['result']中已存在，已存在则修改
+        for item in new_data['result']:
             if "module_name" in item and item["module_name"] == sign.module_name:
                 # 如果找到匹配项，则修改数据
                 if not hasattr(sign, 'result'):
@@ -202,7 +212,13 @@ def rewrite_result(sign_list: list):
             logger.info(f"没找到匹配项，尝试追加数据")
             # 如果没找到匹配项，则追加数据
             if hasattr(sign, 'result'):
-                new_data.append(sign.result)
+                new_data['result'].append(sign.result)
+            else:
+                result = {
+                    "timestamp": int(t),
+                    "timestrimg": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
+                }
+                new_data['result'].append(result)
 
     logger.info(f"决定写入{len(new_data)}个打卡数据 ")
     # logger.info(new_data)
