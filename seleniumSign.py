@@ -209,18 +209,21 @@ def rewrite_result(sign_list: list):
                     item.update(sign.result)
                     break
         else:
-            logger.info(f"没找到匹配项，尝试追加数据")
+            logger.info(f"没找到匹配项，尝试追加{sign.module_name}数据")
             # 如果没找到匹配项，则追加数据
             if hasattr(sign, 'result'):
                 new_data['result'].append(sign.result)
             else:
+                t = time.time()
                 result = {
+                    "module_name": sign.module_name,
+                    "site_name": sign.site_name,
                     "timestamp": int(t),
-                    "timestrimg": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
+                    "timestring": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
                 }
                 new_data['result'].append(result)
 
-    logger.info(f"决定写入{len(new_data)}个打卡数据 ")
+    logger.info(f"决定写入{len(new_data['result'])}个打卡数据 ")
     # logger.info(new_data)
     with open("log/result_data.json", "w", encoding='utf-8') as f:
         # 将 JSON 对象列表写入文件

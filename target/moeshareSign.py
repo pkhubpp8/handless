@@ -115,7 +115,7 @@ class signClass(signBase):
             "sign_result": self.sign_result,
             "sign_result_info": self.sign_result_info,
             "timestamp": int(t),
-            "timestrimg": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
+            "timestring": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
             "new_message": self.new_message,
             "extra_info": self.extra_info
         }
