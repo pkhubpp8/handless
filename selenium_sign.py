@@ -202,15 +202,15 @@ def rewrite_result(sign_list: list):
         # 判断sign.result是否在new_data['result']中已存在，已存在则修改
         for item in new_data['result']:
             if "module_name" in item and item["module_name"] == sign.module_name:
-                # 如果找到匹配项，则修改数据
+                # 如果找到匹配项，则修改数据，并跳出for else循环
                 if not hasattr(sign, 'result'):
                     item.update(None)
                 else:
                     item.update(sign.result)
-                    break
+                break
         else:
-            logger.info(f"没找到匹配项，尝试追加{sign.module_name}数据")
             # 如果没找到匹配项，则追加数据
+            logger.info(f"没找到匹配项，尝试追加{sign.site_name}数据")
             if hasattr(sign, 'result'):
                 new_data['result'].append(sign.result)
             else:
