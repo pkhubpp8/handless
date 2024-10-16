@@ -187,9 +187,9 @@ def rewrite_result(sign_list: list):
                 last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
                 current_datetime = datetime.datetime.now()
                 if last_sign_time.day != current_datetime.day:
-                    continue
+                    continue    # 旧数据已过时
                 if data[i]['sign_result'] == False:
-                    continue
+                    continue    # 无效旧数据
                 new_data['result'].append(data[i])
     except Exception as e:
         logger.warning(f"打开结果记录异常：{e}")
@@ -209,8 +209,7 @@ def rewrite_result(sign_list: list):
                     item.update(sign.result)
                 break
         else:
-            # 如果没找到匹配项，则追加数据
-            logger.info(f"没找到匹配项，尝试追加{sign.site_name}数据")
+            logger.info(f"没找到旧数据或旧数据已过时，尝试追加{sign.site_name}新数据")
             if hasattr(sign, 'result'):
                 new_data['result'].append(sign.result)
             else:
@@ -324,7 +323,7 @@ if __name__ == "__main__":
 
     # 添加命令行参数
     parser.add_argument('-f', '--force', action='store_true', help='强制重新运行，忽略已运行记录')
-    parser.add_argument('-o', '--once', action='store_true', help='运行一次')
+    parser.add_argument('-o', '--once', action='store_true', help='立即运行一次')
     parser.add_argument('site_name', nargs='?', default='all', help='指定站点名，默认all')
 
     # 解析命令行参数
