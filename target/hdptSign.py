@@ -7,10 +7,10 @@ from ._BASE import signBase
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, url = 'https://www.okpt.net/index.php', module_name: str = 'okptSign'):
+    def __init__(self, url = 'https://hdpt.xyz/index.php', module_name: str = 'hdptSign'):
         self.indexUrl = url
         self.module_name = module_name
-        super().__init__("okpt")
+        super().__init__("hdpt")
     def accessIndex(self):
         self.driver.get(self.indexUrl)  # 打开链接
     def msgCheck(self) -> bool:
@@ -27,11 +27,11 @@ class signClass(signBase):
     def sign(self):
         elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
         for element in elements:
-            if element.text == '[签到得魔力]' and 'attendance.php' in element.get_attribute("href"):
+            if element.text == '[签到得魔力]':
                 element.click()
                 break
     def validSign(self):
-        if not re.search('OKPT.*NexusPHP', self.driver.title):
+        if not re.search('明教', self.driver.title):
             self.sign_result = False
             self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
