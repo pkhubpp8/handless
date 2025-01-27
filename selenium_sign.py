@@ -65,7 +65,7 @@ def get_and_remove_ignore_list(sign_list: list, force) -> list:
         try:
             with open("log/result_data.json", "r", encoding='utf-8') as f:
                 result_data = json.load(f)
-                if 'version' in result_data and result_data['version'] == RESULT_VERSION:
+                if isinstance(result_data, dict) and result_data.get('version') == RESULT_VERSION:
                     data = result_data['result']
                 else:
                     logger.info(f"reult版本已过时，丢弃")
@@ -175,7 +175,7 @@ def rewrite_result(sign_list: list):
         with open("log/result_data.json", "r", encoding='utf-8') as f:
         # 将文件内容转换为 JSON 对象列表
             result_data = json.load(f)
-            if 'version' in result_data and result_data['version'] == RESULT_VERSION:
+            if isinstance(result_data, dict) and result_data.get('version') == RESULT_VERSION:
                 data = result_data['result']
             else:
                 logger.info(f"reult版本已过时，丢弃")
@@ -201,7 +201,7 @@ def rewrite_result(sign_list: list):
     for sign in sign_list:
         # 判断sign.result是否在new_data['result']中已存在，已存在则修改
         for item in new_data['result']:
-            if "module_name" in item and item["module_name"] == sign.module_name:
+            if isinstance(item, dict) and item.get("module_name") == sign.module_name:
                 # 如果找到匹配项，则修改数据，并跳出for else循环
                 if not hasattr(sign, 'result'):
                     item.update(None)
