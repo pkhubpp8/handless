@@ -333,6 +333,8 @@ if __name__ == "__main__":
     logger.info(f'参数 force: {args.force}')
     logger.info(f'参数 once: {args.once}')
     logger.info(f'参数 site_name: {args.site_name}')
+    logger.info(f'开始执行签到任务')
+
     if args.once == True:
         main(args.force, args.site_name)
     else:
