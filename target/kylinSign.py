@@ -30,6 +30,7 @@ class signClass(signBase):
         for element in elements:
             if element.text == '[签到得魔力]' and 'attendance.php' in element.get_attribute("href"):
                 element.click()
+                time.sleep(10)
                 break
     def validSign(self):
         if not re.search('HDKylin.*NexusPHP', self.driver.title):
