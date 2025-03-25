@@ -30,6 +30,7 @@ class signClass(signBase):
             logger.warning(f"找到elements长度{len(elements)}异常")
             return True
     def sign(self):
+        return
         elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
         for element in elements:
             if element.text == '[签到得魔力]':
@@ -40,6 +41,11 @@ class signClass(signBase):
             self.sign_result = False
             self.sign_result_info = f"标题异常：{self.driver.title}"
             return False
+        
+        self.sign_result = True
+        self.sign_result_info = f"签到已下线，无需签到"
+        return True
+        
         elements = self.driver.find_elements(By.CLASS_NAME, "text")
         for element in elements:
             match = re.search(r'这是[你您]的第\s*(\d+)\s*次签到.*已连续签到\s*(\d+)\s*天.*本次签到获得\s*(\d+)\s*个魔力值', element.text)
