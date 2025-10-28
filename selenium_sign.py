@@ -5,8 +5,11 @@ import time
 import json
 import datetime
 import argparse
+import atexit
+from dataclasses import dataclass
+from typing import List, Optional, Dict, Any
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.remote.webdriver import WebDriver
 
 from init import firefox_profile
 from init import myLogger
@@ -15,31 +18,61 @@ from helper import module_importer
 
 RESULT_VERSION = 1.0
 
-def printList(sign_list: list, is_detail: bool):
-    if not sign_list:
-        logger.info("空")
-    else:
-        for sign in sign_list:
-            if is_detail:
-                if sign.result:
-                    if sign.result.get('access_result_info'):
-                        logger.info(f"{sign.indexUrl}: {sign.result.get('access_result_info')}")
-                    elif sign.result.get('sign_result_info'):
-                        logger.info(f"{sign.indexUrl}: {sign.result.get('sign_result_info')}")
-                else:
-                    logger.info(f"{sign.indexUrl}: no result")
-            else:
-                logger.info(f"{sign.indexUrl}")
+@dataclass
+class SignResult:
+    module_name: str
+    site_name: str
+    timestamp: int
+    timestring: str
+    access_result_info: Optional[str] = None
+    sign_result_info: Optional[str] = None
+    extra_info: Optional[str] = None
+    new_message: Optional[str] = None
+    sign_result: bool = False
 
-def show_extra_info(sign_list: list):
-    logger.info("start print extra info")
-    if not sign_list:
-        logger.info("空")
-        return
-    for sign in sign_list:
-        if sign.result:
-            if sign.result.get('extra_info') or sign.result.get('new_message'):
-                logger.info(f"{sign.indexUrl}; extra info: {sign.result.get('extra_info')}; new message: {sign.result.get('new_message')}")
+class SignLogger:
+    def __init__(self, logger):
+        self.logger = logger
+
+    def print_list(self, sign_list: List[Any], is_detail: bool) -> None:
+        """打印签到列表信息
+
+        Args:
+            sign_list: 签到站点列表
+            is_detail: 是否显示详细信息
+        """
+        if not sign_list:
+            self.logger.info("空")
+            return
+            
+        for sign in sign_list:
+            if is_detail and hasattr(sign, 'result'):
+                result = getattr(sign, 'result')
+                if result:
+                    info = result.get('access_result_info') or result.get('sign_result_info') or 'no result'
+                    self.logger.info(f"{sign.indexUrl}: {info}")
+                else:
+                    self.logger.info(f"{sign.indexUrl}: no result")
+            else:
+                self.logger.info(f"{sign.indexUrl}")
+
+    def show_extra_info(self, sign_list: List[Any]) -> None:
+        """显示额外信息
+
+        Args:
+            sign_list: 签到站点列表
+        """
+        self.logger.info("start print extra info")
+        if not sign_list:
+            self.logger.info("空")
+            return
+            
+        for sign in sign_list:
+            if hasattr(sign, 'result') and sign.result:
+                extra = sign.result.get('extra_info')
+                msg = sign.result.get('new_message')
+                if extra or msg:
+                    self.logger.info(f"{sign.indexUrl}; extra info: {extra}; new message: {msg}")
 
 def get_sign_list(site_name: str):
     # 获取目录下.py文件的文件名
@@ -167,66 +200,72 @@ def resign(fail_list, driver) -> list:
     ss, fail_list = do_sign(fail_list, driver)
     return [ss, fail_list]
 
-def rewrite_result(sign_list: list):
-    new_data = {'version': RESULT_VERSION, 'result': []}
-    data = []
-    # load旧数据
-    try:
-        with open("log/result_data.json", "r", encoding='utf-8') as f:
-        # 将文件内容转换为 JSON 对象列表
-            result_data = json.load(f)
-            if isinstance(result_data, dict) and result_data.get('version') == RESULT_VERSION:
-                data = result_data['result']
-            else:
-                logger.info(f"reult版本已过时，丢弃")
+class SignResultManager:
+    def __init__(self, logger):
+        self.logger = logger
+        self.result_file = "log/result_data.json"
 
-            for i in range(len(data)):
-                if data[i] == None:
-                    continue
-                last_timestamp = data[i]['timestamp']
-                last_sign_time = datetime.datetime.fromtimestamp(last_timestamp)
-                current_datetime = datetime.datetime.now()
-                if last_sign_time.day != current_datetime.day:
-                    continue    # 旧数据已过时
-                if data[i]['sign_result'] == False:
-                    continue    # 无效旧数据
-                new_data['result'].append(data[i])
-    except Exception as e:
-        logger.warning(f"打开结果记录异常：{e}")
-        logger.warning(f"错误堆栈信息：")
-        logger.warning(traceback.format_exc())
+    def load_previous_results(self) -> Dict:
+        """加载之前的签到结果"""
+        try:
+            with open(self.result_file, "r", encoding='utf-8') as f:
+                result_data = json.load(f)
+                if isinstance(result_data, dict) and result_data.get('version') == RESULT_VERSION:
+                    return result_data
+                self.logger.info("result版本已过时，丢弃")
+        except Exception as e:
+            self.logger.warning(f"打开结果记录异常：{e}")
+            self.logger.warning(traceback.format_exc())
+        return {'version': RESULT_VERSION, 'result': []}
 
-    # 追加新数据
-    logger.info(f"尝试写入{len(sign_list)}个打卡数据 ")
-    for sign in sign_list:
-        # 判断sign.result是否在new_data['result']中已存在，已存在则修改
-        for item in new_data['result']:
-            if isinstance(item, dict) and item.get("module_name") == sign.module_name:
-                # 如果找到匹配项，则修改数据，并跳出for else循环
-                if not hasattr(sign, 'result'):
-                    item.update(None)
-                else:
-                    item.update(sign.result)
-                break
-        else:
-            logger.info(f"没找到旧数据或旧数据已过时，尝试追加{sign.site_name}新数据")
+    def is_result_valid(self, result: Dict) -> bool:
+        """检查结果是否有效"""
+        if not result:
+            return False
+        last_time = datetime.datetime.fromtimestamp(result['timestamp'])
+        current_time = datetime.datetime.now()
+        return (last_time.day == current_time.day and 
+                result.get('sign_result', False))
+
+    def update_result(self, sign_list: List[Any]) -> None:
+        """更新签到结果
+
+        Args:
+            sign_list: 签到站点列表
+        """
+        new_data = self.load_previous_results()
+        valid_results = [r for r in new_data['result'] if self.is_result_valid(r)]
+        new_data['result'] = valid_results
+
+        self.logger.info(f"尝试写入{len(sign_list)}个打卡数据")
+        
+        for sign in sign_list:
+            result = None
             if hasattr(sign, 'result'):
-                new_data['result'].append(sign.result)
+                result = sign.result
             else:
                 t = time.time()
-                result = {
-                    "module_name": sign.module_name,
-                    "site_name": sign.site_name,
-                    "timestamp": int(t),
-                    "timestring": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t)),
-                }
-                new_data['result'].append(result)
+                result = SignResult(
+                    module_name=sign.module_name,
+                    site_name=sign.site_name,
+                    timestamp=int(t),
+                    timestring=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t))
+                ).__dict__
 
-    logger.info(f"决定写入{len(new_data['result'])}个打卡数据 ")
-    # logger.info(new_data)
-    with open("log/result_data.json", "w", encoding='utf-8') as f:
-        # 将 JSON 对象列表写入文件
-        json.dump(new_data, f, ensure_ascii=False, indent=4)
+            # Update existing or append new
+            for item in new_data['result']:
+                if item.get("module_name") == sign.module_name:
+                    if result:
+                        item.update(result)
+                    break
+            else:
+                if result:
+                    self.logger.info(f"追加{sign.site_name}新数据")
+                    new_data['result'].append(result)
+
+        self.logger.info(f"写入{len(new_data['result'])}个打卡数据")
+        with open(self.result_file, "w", encoding='utf-8') as f:
+            json.dump(new_data, f, ensure_ascii=False, indent=4)
 
 def not_retry(sign):
     if sign.result:
@@ -252,101 +291,178 @@ def not_retry(sign):
             elif "未签到。活跃度不够" in sign.result.get('sign_result_info'):
                 logger.info(f"{sign.module_name} 活跃度不够, not retry")
                 return True
+            elif "未签到。需要使用webbrowser签到" in sign.result.get('sign_result_info'):
+                logger.info(f"{sign.module_name} 需要使用webbrowser签到, not retry")
+                return True
     return False
 
-def main(force: bool, site_name: str):
-    '''
-    WebDriverWait(driver, 10).until(
-            lambda wd: driver.execute_script("return document.readyState") == 'complete',
-            "Page taking too long to load"
-        )
-    '''
-    if logger:
+class SignManager:
+    def __init__(self, logger):
+        self.logger = logger
+        self.sign_logger = SignLogger(logger)
+        self.result_manager = SignResultManager(logger)
+        self.driver = None
+        
+    def initialize_driver(self):
+        """初始化WebDriver"""
+        if not self.driver or (self.driver.service.process.poll() == 1):
+            self.driver = get_web_driver()
+        return bool(self.driver)
+
+    def shutdown(self) -> None:
+        """安全关闭 WebDriver（如果存在）。
+
+        这个方法在程序退出或接收到中断时应被调用，确保浏览器和 geckodriver 进程被正确终止。
+        """
+        try:
+            if self.driver:
+                try:
+                    self.logger.info("Shutting down webdriver...")
+                    self.driver.quit()
+                except Exception:
+                    # 不要抛出异常，记录即可
+                    self.logger.warning("Exception while quitting webdriver", exc_info=True)
+                finally:
+                    self.driver = None
+        except Exception:
+            self.logger.warning("Unexpected exception during SignManager.shutdown", exc_info=True)
+        
+    def handle_webbrowser_signs(self, temp_pass: List[Any]):
+        """处理需要使用webbrowser的签到"""
+        for sign in temp_pass:
+            if not (sign.result and "需要使用webbrowser签到" in sign.result.get('sign_result_info', '')):
+                continue
+                
+            import re
+            match = re.search(r'需要使用webbrowser签到(http.*)', sign.result.get('sign_result_info'))
+            if match:
+                if self.driver:
+                    self.driver.quit()
+                    self.driver = None
+                    
+                webbrowser.open(match.group(1))
+                time.sleep(15)
+                os.system("taskkill /im firefox.exe /f")
+                
+    def main(self, force: bool, site_name: str):
+        """主要签到流程
+        
+        Args:
+            force: 是否强制签到
+            site_name: 站点名称
+        """
+        if not self.logger:
+            self.logger.error("初始化失败")
+            sys.exit(-1)
+            
         sign_list = get_sign_list(site_name)
-        target_size = len(sign_list);
-        logger.info(f"有{target_size}个站需要签到")
+        target_size = len(sign_list)
+        self.logger.info(f"有{target_size}个站需要签到")
+        
         ignore_list = get_and_remove_ignore_list(sign_list, force)
-        logger.info(f"有{len(ignore_list)}个站忽略签到")
+        self.logger.info(f"有{len(ignore_list)}个站忽略签到")
+        
         if len(ignore_list) == target_size:
-            logger.info(f"没有站需要签到，等待30秒结束") # 防止运行过快
+            self.logger.info("没有站需要签到，等待30秒结束")
             time.sleep(30)
             return
+            
+        if not self.initialize_driver():
+            self.logger.error("driver未创建")
+            return
+            
+        succeed_list, fail_list = do_sign(sign_list, self.driver)
+        self.logger.info(f"签到成功{len(succeed_list)}个站，失败{len(fail_list)}个站")
 
-        driver = get_web_driver()
-        if driver:
-            succeed_list, fail_list = do_sign(sign_list, driver)
-            logger.info(f"签到成功{len(succeed_list)}个站，失败{len(fail_list)}个站")
+        # 处理失败的签到
+        real_failed_list = []
+        temp_pass = []
+        for item in fail_list:
+            (temp_pass if not_retry(item) else real_failed_list).append(item)
 
-            real_failed_list = []
-            temp_pass = []
-            for item in fail_list:
-                if not_retry(item) == True:
-                    temp_pass.append(item)
-                else:
-                    real_failed_list.append(item)
-            fail_list = real_failed_list
+        # 第一次重试
+        succeed_list2, fail_list2 = [], []
+        if real_failed_list:
+            time.sleep(5)
+            succeed_list2, fail_list2 = resign(real_failed_list, self.driver)
+            self.logger.info(f"重新签到1, 成功{len(succeed_list2)}/失败{len(fail_list2)}")
 
-            succeed_list2 = []
-            fail_list2 = []
-            if fail_list:
-                time.sleep(5)
-                succeed_list2, fail_list2 = resign(fail_list, driver)
-                logger.info(f"重新签到1, 成功{len(succeed_list2)}/失败{len(fail_list2)}")
+        # 第二次重试
+        succeed_list3, fail_list3 = [], []
+        if fail_list2:
+            time.sleep(5)
+            succeed_list3, fail_list3 = resign(fail_list2, self.driver)
+            self.logger.info(f"重新签到2, 成功{len(succeed_list3)}/失败{len(fail_list3)}")
 
-            succeed_list3 = []
-            fail_list3 = []
-            if fail_list2:
-                time.sleep(5)
-                succeed_list3, fail_list3 = resign(fail_list2, driver)
-                logger.info(f"重新签到2, 成功{len(succeed_list3)}/失败{len(fail_list3)}")
+        self.logger.info("不重试签到 列表：")
+        self.sign_logger.print_list(temp_pass, True)
 
-            logger.info("不重试签到 列表：")
-            printList(temp_pass, True)
+        self.logger.info("重试依然签到失败 列表：")
+        self.sign_logger.print_list(fail_list3, True)
 
-            logger.info("重试依然签到失败 列表：")
-            printList(fail_list3, True)
+        self.handle_webbrowser_signs(temp_pass)
+        
+        if not self.driver:
+            self.initialize_driver()
 
-            show_extra_info(succeed_list + succeed_list2 + succeed_list3 + fail_list3)
+        all_results = succeed_list + succeed_list2 + succeed_list3 + fail_list3
+        self.sign_logger.show_extra_info(all_results)
+        self.result_manager.update_result(all_results)
 
-            rewrite_result(succeed_list + succeed_list2 + succeed_list3 + fail_list3)
-            driver.quit()
-            driver = None
-    else:
-        logger.error(f"初始化失败")
-        sys.exit(-1)
 
+def run_scheduler(sign_manager: SignManager, args: argparse.Namespace) -> None:
+    """运行签到调度器
+    
+    Args:
+        sign_manager: 签到管理器实例
+        args: 命令行参数
+    """
+    if args.once:
+        sign_manager.main(args.force, args.site_name)
+        return
+
+    logger.info('开始等待')
+    while True:
+        now = datetime.datetime.now()
+        if now.hour == 4 and now.minute == 0:
+            logger.info(f'现在是{now.day}日{now.hour}时{now.minute}分')
+            sign_manager.main(args.force, args.site_name)
+            logger.info('开始等待')
+        else:
+            time.sleep(50)
 
 if __name__ == "__main__":
-    global logger
+    import webbrowser
+    
     logger = get_logger()
-    parser = argparse.ArgumentParser(description='哈哈哈哈')
+    parser = argparse.ArgumentParser(description='自动化签到工具')
 
-    # 添加命令行参数
     parser.add_argument('-f', '--force', action='store_true', help='强制重新运行，忽略已运行记录')
     parser.add_argument('-o', '--once', action='store_true', help='立即运行一次')
     parser.add_argument('site_name', nargs='?', default='all', help='指定站点名，默认all')
 
-    # 解析命令行参数
     args = parser.parse_args()
 
-    # 输出解析结果
     logger.info(f'参数 force: {args.force}')
     logger.info(f'参数 once: {args.once}')
     logger.info(f'参数 site_name: {args.site_name}')
-    logger.info(f'开始执行签到任务')
+    logger.info('开始执行签到任务')
 
-    if args.once == True:
-        main(args.force, args.site_name)
-    else:
-        logger.info(f'开始等待')
-        while True:
-            now = datetime.datetime.now()
-            today = datetime.date.today()
-            current_hour = now.hour
-            current_minute = now.minute
-            if current_hour == 4 and current_minute == 0:
-                logger.info(f'现在是{today.day}日{current_hour}时{current_minute}分')
-                main(args.force, args.site_name)
-                logger.info(f'开始等待')
-            else:
-                time.sleep(50)
+    sign_manager = SignManager(logger)
+
+    # Ensure webdriver is closed on normal exit
+    atexit.register(sign_manager.shutdown)
+
+    try:
+        run_scheduler(sign_manager, args)
+    except KeyboardInterrupt:
+        logger.info('收到键盘中断，准备退出')
+    except Exception as e:
+        logger.error(f'运行时发生未捕获异常: {e}')
+        logger.warning(traceback.format_exc())
+    finally:
+        # 确保在任意退出路径都调用 shutdown
+        try:
+            sign_manager.shutdown()
+        except Exception:
+            logger.warning('shutdown 时发生异常', exc_info=True)

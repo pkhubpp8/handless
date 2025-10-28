@@ -26,12 +26,15 @@ class signClass(signBase):
             logger.warning(f"找到elements长度{len(elements)}异常")
             return True
     def sign(self):
-        elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
-        for element in elements:
-            if element.text == '[签到得魔力]' and 'attendance.php' in element.get_attribute("href"):
-                element.click()
-                time.sleep(10)
-                break
+        pass
+        # import webbrowser
+        # webbrowser.open('https://na.hdkylin.com/attendance.php')
+        # elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
+        # for element in elements:
+        #     if element.text == '[签到得魔力]' and 'attendance.php' in element.get_attribute("href"):
+        #         element.click()
+        #         time.sleep(10)
+        #         break
     def validSign(self):
         if not re.search('HDKylin.*NexusPHP', self.driver.title):
             self.sign_result = False
@@ -51,6 +54,13 @@ class signClass(signBase):
                 self.sign_result = True
                 self.sign_result_info = f"已经签到过了。签到已得{match.group(1)}"
                 return True
+        elements = self.driver.find_elements(By.CLASS_NAME, "faqlink")
+        for element in elements:
+            if element.text == '[签到得魔力]' and 'attendance.php' in element.get_attribute("href"):
+                self.sign_result = False
+                self.sign_result_info = f"未签到。需要使用webbrowser签到https://na.hdkylin.com/attendance.php"
+                self.driver = None
+                return False
         self.sign_result = False
         self.sign_result_info = f"未知异常。"
         return False
