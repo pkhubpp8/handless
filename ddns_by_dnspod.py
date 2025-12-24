@@ -66,7 +66,7 @@ def test_http_until_connection_ok():
             time.sleep(20)
 
 if __name__ == "__main__":
-    config_data = config_init.get_config_for_ddns()
+    config_data = config_init.get_config_for_DNSPod_ddns()
     config_data_check(config_data)
     test_http_until_connection_ok()
 

@@ -371,41 +371,46 @@ class SignManager:
             self.logger.error("driver未创建")
             return
             
-        succeed_list, fail_list = do_sign(sign_list, self.driver)
-        self.logger.info(f"签到成功{len(succeed_list)}个站，失败{len(fail_list)}个站")
+        # 首次签到
+        success_signs, failed_signs = do_sign(sign_list, self.driver)
+        self.logger.info(f"签到成功{len(success_signs)}个站，失败{len(failed_signs)}个站")
 
-        # 处理失败的签到
-        real_failed_list = []
-        temp_pass = []
-        for item in fail_list:
-            (temp_pass if not_retry(item) else real_failed_list).append(item)
+        # 分类失败原因
+        retry_failed_signs = []  # 需要重试的失败项
+        skipped_signs = []       # 不重试的失败项（如未登录、活跃度不够等）
+        for sign in failed_signs:
+            if not_retry(sign):
+                skipped_signs.append(sign)
+            else:
+                retry_failed_signs.append(sign)
 
         # 第一次重试
-        succeed_list2, fail_list2 = [], []
-        if real_failed_list:
+        retry1_success_signs, retry1_failed_signs = [], []
+        if retry_failed_signs:
             time.sleep(5)
-            succeed_list2, fail_list2 = resign(real_failed_list, self.driver)
-            self.logger.info(f"重新签到1, 成功{len(succeed_list2)}/失败{len(fail_list2)}")
+            retry1_success_signs, retry1_failed_signs = resign(retry_failed_signs, self.driver)
+            self.logger.info(f"重试1: 成功{len(retry1_success_signs)}/失败{len(retry1_failed_signs)}")
 
         # 第二次重试
-        succeed_list3, fail_list3 = [], []
-        if fail_list2:
+        retry2_success_signs, retry2_failed_signs = [], []
+        if retry1_failed_signs:
             time.sleep(5)
-            succeed_list3, fail_list3 = resign(fail_list2, self.driver)
-            self.logger.info(f"重新签到2, 成功{len(succeed_list3)}/失败{len(fail_list3)}")
+            retry2_success_signs, retry2_failed_signs = resign(retry1_failed_signs, self.driver)
+            self.logger.info(f"重试2: 成功{len(retry2_success_signs)}/失败{len(retry2_failed_signs)}")
 
         self.logger.info("不重试签到 列表：")
-        self.sign_logger.print_list(temp_pass, True)
+        self.sign_logger.print_list(skipped_signs, True)
 
         self.logger.info("重试依然签到失败 列表：")
-        self.sign_logger.print_list(fail_list3, True)
+        self.sign_logger.print_list(retry2_failed_signs, True)
 
-        self.handle_webbrowser_signs(temp_pass)
-        
+        self.handle_webbrowser_signs(skipped_signs)
+
         if not self.driver:
             self.initialize_driver()
 
-        all_results = succeed_list + succeed_list2 + succeed_list3 + fail_list3
+        # 汇总所有结果
+        all_results = success_signs + retry1_success_signs + retry2_success_signs + retry2_failed_signs
         self.sign_logger.show_extra_info(all_results)
         self.result_manager.update_result(all_results)
 

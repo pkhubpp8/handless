@@ -21,7 +21,7 @@ def get_config_for_sign() -> dict:
     }
     return result
 
-def get_config_for_ddns() -> dict:
+def get_config_for_DNSPod_ddns() -> dict:
     config = configparser.ConfigParser()
     if os.path.exists(local_config):
         config.read(local_config)
