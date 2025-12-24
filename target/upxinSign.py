@@ -7,7 +7,7 @@ from ._BASE import signBase
 logger = logging.getLogger('sign')
 
 class signClass(signBase):
-    def __init__(self, url = 'https://pt.upxin.net/index.php', module_name: str = 'upxinSign'):
+    def __init__(self, url = 'http://pt.hdupt.com//index.php', module_name: str = 'upxinSign'):
         self.indexUrl = url
         self.module_name = module_name
         super().__init__("upxin")
