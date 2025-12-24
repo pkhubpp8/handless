@@ -44,7 +44,7 @@ class SignLogger:
         if not sign_list:
             self.logger.info("空")
             return
-            
+
         for sign in sign_list:
             if is_detail and hasattr(sign, 'result'):
                 result = getattr(sign, 'result')
@@ -66,7 +66,7 @@ class SignLogger:
         if not sign_list:
             self.logger.info("空")
             return
-            
+
         for sign in sign_list:
             if hasattr(sign, 'result') and sign.result:
                 extra = sign.result.get('extra_info')
@@ -224,7 +224,7 @@ class SignResultManager:
             return False
         last_time = datetime.datetime.fromtimestamp(result['timestamp'])
         current_time = datetime.datetime.now()
-        return (last_time.day == current_time.day and 
+        return (last_time.day == current_time.day and
                 result.get('sign_result', False))
 
     def update_result(self, sign_list: List[Any]) -> None:
@@ -238,7 +238,7 @@ class SignResultManager:
         new_data['result'] = valid_results
 
         self.logger.info(f"尝试写入{len(sign_list)}个打卡数据")
-        
+
         for sign in sign_list:
             result = None
             if hasattr(sign, 'result'):
@@ -302,7 +302,7 @@ class SignManager:
         self.sign_logger = SignLogger(logger)
         self.result_manager = SignResultManager(logger)
         self.driver = None
-        
+
     def initialize_driver(self):
         """初始化WebDriver"""
         if not self.driver or (self.driver.service.process.poll() == 1):
@@ -326,27 +326,27 @@ class SignManager:
                     self.driver = None
         except Exception:
             self.logger.warning("Unexpected exception during SignManager.shutdown", exc_info=True)
-        
+
     def handle_webbrowser_signs(self, temp_pass: List[Any]):
         """处理需要使用webbrowser的签到"""
         for sign in temp_pass:
             if not (sign.result and "需要使用webbrowser签到" in sign.result.get('sign_result_info', '')):
                 continue
-                
+
             import re
             match = re.search(r'需要使用webbrowser签到(http.*)', sign.result.get('sign_result_info'))
             if match:
                 if self.driver:
                     self.driver.quit()
                     self.driver = None
-                    
+
                 webbrowser.open(match.group(1))
                 time.sleep(15)
                 os.system("taskkill /im firefox.exe /f")
-                
+
     def main(self, force: bool, site_name: str):
         """主要签到流程
-        
+
         Args:
             force: 是否强制签到
             site_name: 站点名称
@@ -354,23 +354,23 @@ class SignManager:
         if not self.logger:
             self.logger.error("初始化失败")
             sys.exit(-1)
-            
+
         sign_list = get_sign_list(site_name)
         target_size = len(sign_list)
         self.logger.info(f"有{target_size}个站需要签到")
-        
+
         ignore_list = get_and_remove_ignore_list(sign_list, force)
         self.logger.info(f"有{len(ignore_list)}个站忽略签到")
-        
+
         if len(ignore_list) == target_size:
             self.logger.info("没有站需要签到，等待30秒结束")
             time.sleep(30)
             return
-            
+
         if not self.initialize_driver():
             self.logger.error("driver未创建")
             return
-            
+
         # 首次签到
         success_signs, failed_signs = do_sign(sign_list, self.driver)
         self.logger.info(f"签到成功{len(success_signs)}个站，失败{len(failed_signs)}个站")
@@ -404,7 +404,7 @@ class SignManager:
         self.logger.info("重试依然签到失败 列表：")
         self.sign_logger.print_list(retry2_failed_signs, True)
 
-        self.handle_webbrowser_signs(skipped_signs)
+        # self.handle_webbrowser_signs(skipped_signs)
 
         if not self.driver:
             self.initialize_driver()
@@ -417,7 +417,7 @@ class SignManager:
 
 def run_scheduler(sign_manager: SignManager, args: argparse.Namespace) -> None:
     """运行签到调度器
-    
+
     Args:
         sign_manager: 签到管理器实例
         args: 命令行参数
@@ -438,7 +438,7 @@ def run_scheduler(sign_manager: SignManager, args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     import webbrowser
-    
+
     logger = get_logger()
     parser = argparse.ArgumentParser(description='自动化签到工具')
 
