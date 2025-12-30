@@ -336,10 +336,6 @@ class SignManager:
             import re
             match = re.search(r'需要使用webbrowser签到(http.*)', sign.result.get('sign_result_info'))
             if match:
-                if self.driver:
-                    self.driver.quit()
-                    self.driver = None
-
                 webbrowser.open(match.group(1))
                 time.sleep(15)
                 os.system("taskkill /im firefox.exe /f")
@@ -404,10 +400,11 @@ class SignManager:
         self.logger.info("重试依然签到失败 列表：")
         self.sign_logger.print_list(retry2_failed_signs, True)
 
-        # self.handle_webbrowser_signs(skipped_signs)
+        if self.driver:
+            self.driver.quit()
+            self.driver = None
 
-        if not self.driver:
-            self.initialize_driver()
+        # self.handle_webbrowser_signs(skipped_signs)
 
         # 汇总所有结果
         all_results = success_signs + retry1_success_signs + retry2_success_signs + retry2_failed_signs
