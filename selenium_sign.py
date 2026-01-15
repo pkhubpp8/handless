@@ -305,9 +305,39 @@ class SignManager:
 
     def initialize_driver(self):
         """初始化WebDriver"""
-        if not self.driver or (self.driver.service.process.poll() == 1):
-            self.driver = get_web_driver()
-        return bool(self.driver)
+        try:
+            # 检查驱动是否存在且进程仍在运行
+            if self.driver:
+                try:
+                    # 尝试执行一个简单的命令来验证驱动是否可用
+                    self.driver.current_url
+                    return True
+                except Exception as e:
+                    self.logger.warning(f"现有驱动不可用，准备重新初始化: {str(e)}")
+                    try:
+                        self.driver.quit()
+                    except:
+                        pass
+                    self.driver = None
+            
+            # 创建新驱动
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    self.driver = get_web_driver()
+                    return bool(self.driver)
+                except Exception as e:
+                    self.logger.error(f"第 {attempt + 1} 次驱动初始化失败: {str(e)}")
+                    if attempt < max_retries - 1:
+                        self.logger.info(f"等待5秒后重试...")
+                        time.sleep(5)
+                    self.driver = None
+            
+            self.logger.error("多次重试后仍无法初始化驱动")
+            return False
+        except Exception as e:
+            self.logger.error(f"初始化驱动时发生异常: {str(e)}")
+            return False
 
     def shutdown(self) -> None:
         """安全关闭 WebDriver（如果存在）。

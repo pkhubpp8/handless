@@ -27,16 +27,29 @@ def checkEnv():
 
 
 def startTempDriver(log_path: str):
-    if not checkEnv():
+    exe_path = checkEnv()
+    if not exe_path:
         return None
 
     from selenium import webdriver
-    if log_path:
-        service = webdriver.firefox.service.Service(log_path = log_path)
-        driver = webdriver.Firefox(service=service)
-    else:
-        driver = webdriver.Firefox()
-    return driver
+    from selenium.webdriver.firefox.options import Options
+    
+    try:
+        ffOptions = Options()
+        ffOptions.add_argument("--no-remote")
+        ffOptions.add_argument("--new-instance")
+        
+        if log_path:
+            service = webdriver.firefox.service.Service(executable_path=exe_path, log_path=log_path)
+        else:
+            service = webdriver.firefox.service.Service(executable_path=exe_path)
+        
+        driver = webdriver.Firefox(options=ffOptions, service=service)
+        driver.set_page_load_timeout(30)
+        return driver
+    except Exception as e:
+        logger.error(f"启动临时驱动失败: {str(e)}")
+        return None
 
 def stopTempDriver(driver = None):
     if driver:
@@ -59,27 +72,37 @@ def getProfilePath(driver = None):
     if not driver:
         return None
 
-    driver.get("about:profiles")
-    # 使用CSS选择器定位所有 "默认配置文件" 为 "是" 的元素以及对应的根目录元素
+    try:
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        
+        driver.get("about:profiles")
+        time.sleep(2)
+        
+        # 等待配置文件信息加载
+        wait = WebDriverWait(driver, 10)
+        wait.until(EC.presence_of_elements_located((By.CSS_SELECTOR, "th[data-l10n-id='profiles-rootdir']")))
+        
+        config_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-is-default'] + td")
+        root_dir_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-rootdir'] + td")
 
-    from selenium.webdriver.common.by import By
-    config_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-is-default'] + td")
-    root_dir_elements = driver.find_elements(By.CSS_SELECTOR, "th[data-l10n-id='profiles-rootdir'] + td")
-    open_folder_button = driver.find_element(By.CSS_SELECTOR, "button[data-l10n-id='profiles-opendir']")
+        root_dir_element = None
+        # 查找默认配置文件
+        for i in range(len(config_elements)):
+            if config_elements[i].text == "是":
+                root_dir_element = root_dir_elements[i]
+                break
 
-    # 初始化根目录
-    root_dir_element = None
-
-    # 遍历所有 "默认配置文件" 元素，查找文本内容为 "是" 的元素，并获取对应的根目录
-    for i in range(len(config_elements)):
-        if config_elements[i].text == "是":
-            root_dir_element = root_dir_elements[i]
-            break  # 找到匹配的元素后退出循环
-
-    if root_dir_element:
-        profile_path = re.sub(re.escape(open_folder_button.text), '', root_dir_element.text)
-        return profile_path
-    else:
+        if root_dir_element:
+            profile_path = root_dir_element.text.strip()
+            logger.info(f"获取到profile路径: {profile_path}")
+            return profile_path
+        else:
+            logger.warning("未找到默认配置文件")
+            return None
+    except Exception as e:
+        logger.error(f"获取profile路径失败: {str(e)}")
         return None
 
 
@@ -91,25 +114,49 @@ def getUA(driver = None):
 
 def create_firefox_with_user_profile(webdriver_log_path: str):
     from selenium.webdriver.firefox.options import Options
+    from selenium import webdriver
+    
+    exe_path = checkEnv()
+    if not exe_path:
+        logger.error("geckodriver not found")
+        sys.exit(-1)
+    
     ffOptions = Options()
-
+    # 添加稳定运行参数
+    ffOptions.add_argument("--no-remote")
+    ffOptions.add_argument("--new-instance")
     ffOptions.add_argument("-profile")
+    
+    # 尝试获取默认profile
     profile_dir = getDefaultProfilePath()
+    if not profile_dir:
+        # 如果默认profile获取失败，尝试通过临时驱动获取
+        logger.info("尝试通过临时驱动获取profile")
+        tempDriver = startTempDriver(webdriver_log_path)
+        if tempDriver:
+            try:
+                profile_dir = getProfilePath(tempDriver)
+            finally:
+                stopTempDriver(tempDriver)
+                time.sleep(1)
+        
+        if not profile_dir:
+            logger.error("无法获取profile，使用默认路径")
+            profile_dir = os.path.expandvars(r'%AppData%\Mozilla\Firefox\Profiles')
+    
     if profile_dir:
         ffOptions.add_argument(profile_dir)
-    else:
-        tempDriver = startTempDriver(webdriver_log_path)
-        profile_dir = getProfilePath(tempDriver)
-        stopTempDriver(tempDriver)
-        if profile_dir:
-            ffOptions.add_argument(profile_dir)
-        else:
-            logger.error(f"无法获取profile")
-            sys.exit(-1)
-    from selenium import webdriver
-    service = webdriver.firefox.service.Service(log_path = webdriver_log_path)
-    driver = webdriver.Firefox(options = ffOptions, service = service)
-    time.sleep(3)
-    driver.maximize_window()
-    logger.info(driver.execute_script("return navigator.userAgent"))
-    return driver
+    
+    try:
+        service = webdriver.firefox.service.Service(executable_path=exe_path, log_path=webdriver_log_path)
+        driver = webdriver.Firefox(options=ffOptions, service=service)
+        driver.set_page_load_timeout(30)
+        driver.implicitly_wait(10)
+        time.sleep(2)
+        driver.maximize_window()
+        ua = driver.execute_script("return navigator.userAgent")
+        logger.info(f"Firefox启动成功，UA: {ua}")
+        return driver
+    except Exception as e:
+        logger.error(f"创建Firefox驱动失败: {str(e)}")
+        raise
